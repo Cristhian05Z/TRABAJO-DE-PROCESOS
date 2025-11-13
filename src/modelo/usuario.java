@@ -1,62 +1,40 @@
 package modelo;
+
 public class Usuario {
-    private int idusuario;
+    private int IDUsuario;
+    private String TipoDeUsuario; // admin, vendedor, turista
     private String Nombre;
-    private String contraseña;
-    private String tipodeusuario;
-
-    @Override
-    public String toString() {
-        return "usuario [idusuario=" + idusuario + ", Nombre=" + Nombre + ", contraseña=" + contraseña
-                + ", tipodeusuario=" + tipodeusuario + "]";
-    }
-
+    private String Contraseña;
+    
     public Usuario() {}
     
-    public Usuario(int idusuario, String nombre, String contraseña, String tipodeusuario) {
-        this.idusuario = idusuario;
-        Nombre = nombre;
-        this.contraseña = contraseña;
-        this.tipodeusuario = tipodeusuario;
+    public Usuario(int IDUsuario, String TipoDeUsuario, String Nombre, String Contraseña) {
+        this.IDUsuario = IDUsuario;
+        this.TipoDeUsuario = TipoDeUsuario;
+        this.Nombre = Nombre;
+        this.Contraseña = Contraseña;
     }
-
-
-    public int getIdusuario() {
-        return idusuario;
-    }
-
-
-    public void setIdusuario(int idusuario) {
-        this.idusuario = idusuario;
-    }
-
-
-    public String getNombre() {
-        return Nombre;
-    }
-
-
-    public void setNombre(String nombre) {
-        Nombre = nombre;
-    }
-
-
-    public String getContraseña() {
-        return contraseña;
-    }
-
-
-    public void setContraseña(String contraseña) {
-        this.contraseña = contraseña;
-    }
-
-
-    public String getTipodeusuario() {
-        return tipodeusuario;
-    }
-
-
-    public void setTipodeusuario(String tipodeusuario) {
-        this.tipodeusuario = tipodeusuario;
+    
+    // Getters y Setters
+    public int getIDUsuario() { return IDUsuario; }
+    public void setIDUsuario(int IDUsuario) { this.IDUsuario = IDUsuario; }
+    
+    public String getTipoDeUsuario() { return TipoDeUsuario; }
+    public void setTipoDeUsuario(String TipoDeUsuario) { this.TipoDeUsuario = TipoDeUsuario; }
+    
+    public String getNombre() { return Nombre; }
+    public void setNombre(String Nombre) { this.Nombre = Nombre; }
+    
+    public String getContraseña() { return Contraseña; }
+    public void setContraseña(String Contraseña) { this.Contraseña = Contraseña; }
+    
+    @Override
+    public String toString() {
+        return "Usuario{" +
+                "IDUsuario=" + IDUsuario +
+                ", TipoDeUsuario='" + TipoDeUsuario + '\'' +
+                ", Nombre='" + Nombre + '\'' +
+                '}';
     }
 }
+

@@ -1,79 +1,92 @@
 package modelo;
 
-public class turista extends Usuario{
-    private int idturista;
-    private String nombreturista;
-    private String apellido;
-    private String dni;
-    private String nacionalidad;
-    private String telefono;
-    private String email;
+public class Turista extends Usuario{
+    private int IDTurista;
+    private String Nombre;
+    private String Apellido;
+    private String DNI;
+    private String Nacionalidad;
+    private String Telefono;
+    private String Email;
     
     @Override
     public String toString() {
-        return "turista [idturista=" + idturista + ", nombreturista=" + nombreturista + ", apellido=" + apellido
-                + ", dni=" + dni + ", nacionalidad=" + nacionalidad + ", telefono=" + telefono + ", email=" + email
-                + "]";
+        return "Turista [IDTurista=" + IDTurista + ", Nombre=" + Nombre + ", Apellido=" + Apellido + ", DNI=" + DNI
+                + ", Nacionalidad=" + Nacionalidad + ", Telefono=" + Telefono + ", Email=" + Email + "]";
     }
-    public int getIdturista() {
-        return idturista;
+    public int getIDTurista() {
+        return IDTurista;
     }
-    public void setIdturista(int idturista) {
-        this.idturista = idturista;
+    public void setIDTurista(int iDTurista) {
+        IDTurista = iDTurista;
     }
-    public String getNombreturista() {
-        return nombreturista;
+    public String getNombre() {
+        return Nombre;
     }
-    public void setNombreturista(String nombreturista) {
-        this.nombreturista = nombreturista;
+    public void setNombre(String nombre) {
+        Nombre = nombre;
     }
     public String getApellido() {
-        return apellido;
+        return Apellido;
     }
     public void setApellido(String apellido) {
-        this.apellido = apellido;
+        Apellido = apellido;
     }
-    public String getDni() {
-        return dni;
+    public String getDNI() {
+        return DNI;
     }
-    public void setDni(String dni) {
-        this.dni = dni;
+    public void setDNI(String dNI) {
+        DNI = dNI;
     }
     public String getNacionalidad() {
-        return nacionalidad;
+        return Nacionalidad;
     }
     public void setNacionalidad(String nacionalidad) {
-        this.nacionalidad = nacionalidad;
+        Nacionalidad = nacionalidad;
     }
     public String getTelefono() {
-        return telefono;
+        return Telefono;
     }
     public void setTelefono(String telefono) {
-        this.telefono = telefono;
+        Telefono = telefono;
     }
     public String getEmail() {
-        return email;
+        return Email;
     }
     public void setEmail(String email) {
-        this.email = email;
+        Email = email;
     }
-    public turista() {
-        super();
+
+    public Turista() {}
+    
+     public String getNombreCompleto() {
+        return Nombre + " " + Apellido;
     }
-     public turista(int idusuario, String tipodeusuario, String nombre, String contraseña,int idturista, String nombreturista, String apellido, String dni, String nacionalidad, String telefono, String email) {
-        super(idusuario, tipodeusuario, nombre, contraseña);
-        this.idturista = idturista;
-        this.nombreturista = nombreturista;
-        this.apellido = apellido;
-        this.dni = dni;
-        this.nacionalidad = nacionalidad;
-        this.telefono = telefono;
-        this.email = email;
+
+
+    public Turista(int IDUsuario, String TipoDeUsuario, String Nombre, String Contraseña, int iDTurista, String nombre2,
+            String apellido, String dNI, String nacionalidad, String telefono, String email) {
+        super(IDUsuario, TipoDeUsuario, Nombre, Contraseña);
+        IDTurista = iDTurista;
+        Nombre = nombre2;
+        Apellido = apellido;
+        DNI = dNI;
+        Nacionalidad = nacionalidad;
+        Telefono = telefono;
+        Email = email;
     }
-    public String getNombreCompleto() {
-        return nombreturista + " " + apellido;
-    }
+
 
 
 
 }
+   
+
+
+
+
+
+    
+
+
+

@@ -1,52 +1,45 @@
 package modelo;
 
-public class promocion {
-    private int idPromocion;
-    private double porcentajeDescuento;
-    private String condiciones; // "3x2", "Descuento familia", "Happy hour", etc
+public class Promocion {
+     private int IDPromocion;
+    private double PorcentajeDescuento;
+    private String Condiciones;
     
-    @Override
-    public String toString() {
-        return "promocion [idPromocion=" + idPromocion + ", porcentajeDescuento=" + porcentajeDescuento
-                + ", condiciones=" + condiciones + "]";
-    }
-
-    public int getIdPromocion() {
-        return idPromocion;
-    }
-
-    public void setIdPromocion(int idPromocion) {
-        this.idPromocion = idPromocion;
-    }
-
-    public double getPorcentajeDescuento() {
-        return porcentajeDescuento;
-    }
-
-    public void setPorcentajeDescuento(double porcentajeDescuento) {
-        this.porcentajeDescuento = porcentajeDescuento;
-    }
-
-    public String getCondiciones() {
-        return condiciones;
-    }
-
-    public void setCondiciones(String condiciones) {
-        this.condiciones = condiciones;
-    }
-
-    public promocion() {}
+    public Promocion() {}
     
-    public promocion(int idPromocion, double porcentajeDescuento, String condiciones) {
-        this.idPromocion = idPromocion;
-        this.porcentajeDescuento = porcentajeDescuento;
-        this.condiciones = condiciones;
+    public Promocion(int IDPromocion, double PorcentajeDescuento, String Condiciones) {
+        this.IDPromocion = IDPromocion;
+        this.PorcentajeDescuento = PorcentajeDescuento;
+        this.Condiciones = Condiciones;
     }
+    
+    // Getters y Setters
+    public int getIDPromocion() { return IDPromocion; }
+    public void setIDPromocion(int IDPromocion) { this.IDPromocion = IDPromocion; }
+    
+    public double getPorcentajeDescuento() { return PorcentajeDescuento; }
+    public void setPorcentajeDescuento(double PorcentajeDescuento) { 
+        this.PorcentajeDescuento = PorcentajeDescuento; 
+    }
+    
+    public String getCondiciones() { return Condiciones; }
+    public void setCondiciones(String Condiciones) { this.Condiciones = Condiciones; }
+    
     public double calcularDescuento(double monto) {
-        return monto * (porcentajeDescuento / 100.0);
+        return monto * (PorcentajeDescuento / 100.0);
     }
     
     public double aplicarDescuento(double monto) {
         return monto - calcularDescuento(monto);
     }
+    
+    @Override
+    public String toString() {
+        return "Promocion{" +
+                "IDPromocion=" + IDPromocion +
+                ", PorcentajeDescuento=" + PorcentajeDescuento + "%" +
+                ", Condiciones='" + Condiciones + '\'' +
+                '}';
+    }
 }
+

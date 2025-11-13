@@ -1,91 +1,70 @@
 package modelo;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class alquiler {
-
-    private int idAlquiler;
-    private LocalDate fecha;
-    private LocalTime horaDeInicio;
-    private int duracion; // en horas
-    private List<detallealquiler> detalles;
+public class Alquiler {
+    private int IDAlquiler;
+    private LocalDate FechaDeInicio;
+    private LocalTime HoraDeInicio;
+    private int Duracion; // en horas
+    private List<DetalleAlquiler> detalles;
     
-    public int getIdAlquiler() {
-        return idAlquiler;
-    }
-
-    public void setIdAlquiler(int idAlquiler) {
-        this.idAlquiler = idAlquiler;
-    }
-
-    public LocalDate getFecha() {
-        return fecha;
-    }
-
-    public void setFecha(LocalDate fecha) {
-        this.fecha = fecha;
-    }
-
-    public LocalTime getHoraDeInicio() {
-        return horaDeInicio;
-    }
-
-    public void setHoraDeInicio(LocalTime horaDeInicio) {
-        this.horaDeInicio = horaDeInicio;
-    }
-
-    public int getDuracion() {
-        return duracion;
-    }
-
-    public void setDuracion(int duracion) {
-        this.duracion = duracion;
-    }
-
-    public List<detallealquiler> getDetalles() {
-        return detalles;
-    }
-
-    public void setDetalles(List<detallealquiler> detalles) {
-        this.detalles = detalles;
-    }
-
-    public alquiler() {
+    public Alquiler() {
         this.detalles = new ArrayList<>();
-        this.fecha = LocalDate.now();
-        this.horaDeInicio = LocalTime.now();
+        this.FechaDeInicio = LocalDate.now();
+        this.HoraDeInicio = LocalTime.now();
     }
     
-    public alquiler(int idAlquiler, LocalDate fecha, LocalTime horaDeInicio, int duracion) {
-        this.idAlquiler = idAlquiler;
-        this.fecha = fecha;
-        this.horaDeInicio = horaDeInicio;
-        this.duracion = duracion;
+    public Alquiler(int IDAlquiler, LocalDate FechaDeInicio, LocalTime HoraDeInicio, int Duracion) {
+        this.IDAlquiler = IDAlquiler;
+        this.FechaDeInicio = FechaDeInicio;
+        this.HoraDeInicio = HoraDeInicio;
+        this.Duracion = Duracion;
         this.detalles = new ArrayList<>();
     }
-    public void agregarDetalle(detallealquiler detalle) {
+    
+    // Getters y Setters
+    public int getIDAlquiler() { return IDAlquiler; }
+    public void setIDAlquiler(int IDAlquiler) { this.IDAlquiler = IDAlquiler; }
+    
+    public LocalDate getFechaDeInicio() { return FechaDeInicio; }
+    public void setFechaDeInicio(LocalDate FechaDeInicio) { this.FechaDeInicio = FechaDeInicio; }
+    
+    public LocalTime getHoraDeInicio() { return HoraDeInicio; }
+    public void setHoraDeInicio(LocalTime HoraDeInicio) { this.HoraDeInicio = HoraDeInicio; }
+    
+    public int getDuracion() { return Duracion; }
+    public void setDuracion(int Duracion) { this.Duracion = Duracion; }
+    
+    public List<DetalleAlquiler> getDetalles() { return detalles; }
+    public void setDetalles(List<DetalleAlquiler> detalles) { this.detalles = detalles; }
+    
+    // Métodos de negocio
+    public void agregarDetalle(DetalleAlquiler detalle) {
         this.detalles.add(detalle);
     }
     
-    public void removerDetalle(detallealquiler detalle) {
+    public void removerDetalle(DetalleAlquiler detalle) {
         this.detalles.remove(detalle);
     }
     
-    public double calcularSubtotal() {
-        double subtotal = 0;
-        for (detallealquiler detalle : detalles) {
-            subtotal += detalle.calcularSubtotal();
-        }
-        return subtotal;
-    }
-    
-    public double calcularTotalConDescuentos() {
+    public double calcularTotal() {
         double total = 0;
-        for (detallealquiler detalle : detalles) {
-            total += detalle.calcularTotalConDescuento();
+        for (DetalleAlquiler detalle : detalles) {
+            if (detalle.getRecursoObj() != null) {
+                double subtotal = detalle.getRecursoObj().getTarifaPorHora() * Duracion;
+                
+                // Aplicar descuento si existe
+                if (detalle.getPromocionObj() != null) {
+                    subtotal = detalle.getPromocionObj().aplicarDescuento(subtotal);
+                }
+                
+                total += subtotal;
+            }
         }
         return total;
     }
@@ -95,30 +74,29 @@ public class alquiler {
     }
     
     public LocalTime getHoraFin() {
-        return horaDeInicio.plusHours(duracion);
+        return HoraDeInicio.plusHours(Duracion);
     }
     
     public String getFechaFormateada() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        return fecha.format(formatter);
+        return FechaDeInicio.format(formatter);
     }
     
     public String getHoraInicioFormateada() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        return horaDeInicio.format(formatter);
+        return HoraDeInicio.format(formatter);
     }
     
     @Override
     public String toString() {
         return "Alquiler{" +
-                "idAlquiler=" + idAlquiler +
-                ", fecha=" + getFechaFormateada() +
-                ", horaDeInicio=" + getHoraInicioFormateada() +
-                ", duracion=" + duracion + " horas" +
-                ", items=" + getCantidadItems() +
-                ", total=" + String.format("$%.2f", calcularTotalConDescuentos()) +
+                "IDAlquiler=" + IDAlquiler +
+                ", FechaDeInicio=" + getFechaFormateada() +
+                ", HoraDeInicio=" + getHoraInicioFormateada() +
+                ", Duracion=" + Duracion + " horas" +
+                ", Items=" + getCantidadItems() +
+                ", Total=" + String.format("$%.2f", calcularTotal()) +
                 '}';
     }
 }
-    
 
