@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+
 import modelo.Alquiler;
 
 
@@ -96,7 +97,7 @@ public class AlquilerDAO {
             pst.setDate(1, Date.valueOf(alquiler.getFechaDeInicio()));
             pst.setTime(2, Time.valueOf(alquiler.getHoraDeInicio()));
             pst.setInt(3, alquiler.getDuracion());
-            pst.setInt(4, alquiler.getIdAlquiler());
+            pst.setInt(4, alquiler.getIDAlquiler());
             
             return pst.executeUpdate() > 0;
         }

@@ -6,7 +6,7 @@ public class DetalleAlquiler {
     private int IDTurista;
     private int IDAlquiler;
     private Integer IDPromocion; // Puede ser null
-    
+    private String FormatodePago;
     // Objetos relacionados (para facilitar el uso)
     private Recurso recursoObj;
     private Turista turistaObj;
@@ -15,12 +15,13 @@ public class DetalleAlquiler {
     public DetalleAlquiler() {}
     
     public DetalleAlquiler(int IDDetalleAlquiler, int IDRecurso, int IDTurista, 
-                          int IDAlquiler, Integer IDPromocion) {
+                          int IDAlquiler, Integer IDPromocion, String FormatodePago) {
         this.IDDetalleAlquiler = IDDetalleAlquiler;
         this.IDRecurso = IDRecurso;
         this.IDTurista = IDTurista;
         this.IDAlquiler = IDAlquiler;
         this.IDPromocion = IDPromocion;
+        this.FormatodePago = FormatodePago;
     }
     
     // Getters y Setters
@@ -40,6 +41,13 @@ public class DetalleAlquiler {
     
     public Integer getIDPromocion() { return IDPromocion; }
     public void setIDPromocion(Integer IDPromocion) { this.IDPromocion = IDPromocion; }
+      public String getFormatodePago() {
+        return FormatodePago;
+    }
+
+    public void setFormatodePago(String formatodePago) {
+        FormatodePago = formatodePago;
+    }
     
     // Objetos relacionados
     public Recurso getRecursoObj() { return recursoObj; }
@@ -98,13 +106,5 @@ public class DetalleAlquiler {
         return turistaObj != null ? turistaObj.getNombreCompleto() : "N/A";
     }
     
-    @Override
-    public String toString() {
-        return "DetalleAlquiler{" +
-                "IDDetalleAlquiler=" + IDDetalleAlquiler +
-                ", Recurso='" + obtenerNombreRecurso() + '\'' +
-                ", Turista='" + obtenerNombreTurista() + '\'' +
-                ", TienePromocion=" + tienePromocion() +
-                '}';
-    }
+    
 }

@@ -116,14 +116,20 @@ public class DetalleAlquilerDAO {
             return pst.executeUpdate() > 0;
         }
     }
-    private DetalleAlquiler mapearDetalle(ResultSet rs) throws SQLException{
-        DetalleAlquiler detalleAlquiler = new DetalleAlquiler();
-        detalleAlquiler.setIDDetalleAlquiler(rs.getInt("IDDetalleAlquiler"));
-        detalleAlquiler.setIDRecurso(rs.getInt("IDRecurso"));
-        detalleAlquiler.setIDTurista(rs.getInt("IDTurista"));
-        detalleAlquiler.setIDAlquiler(rs.getInt("IDAlquiler"));
-        detalleAlquiler.setIDPromocion(rs.getInt("IDPromocion"));
-        return detalleAlquiler;
+     private DetalleAlquiler mapearDetalle(ResultSet rs) throws SQLException {
+        DetalleAlquiler detalle = new DetalleAlquiler();
+        detalle.setIDDetalleAlquiler(rs.getInt("iDDetalleAlquiler"));
+        detalle.setIDAlquiler(rs.getInt("iDAlquiler"));
+        detalle.setIDTurista(rs.getInt("iDTurista"));
+        detalle.setIDRecurso(rs.getInt("iDRecurso"));
+        
+        int idPromocion = rs.getInt("idPromocion");
+        if (!rs.wasNull()) {
+            detalle.setIDPromocion(idPromocion);
+        }
+        
+        detalle.setFormatodePago(rs.getString("FormatodePago"));
+        return detalle;
     }
 
     
