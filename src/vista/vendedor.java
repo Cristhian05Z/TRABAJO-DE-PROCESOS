@@ -262,7 +262,7 @@ public class vendedor extends JFrame {
             String sql = "INSERT INTO rentas (usuario_id, vendedor_id, fecha, total, estado) VALUES (?, ?, CURDATE(), ?, 'activo')";
             PreparedStatement pst = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             pst.setInt(1, clienteId);
-            pst.setInt(2, currentUser.getIdusuario());
+            pst.setInt(2, currentUser.getIDUsuario());
             pst.setDouble(3, total);
             pst.executeUpdate();
             
