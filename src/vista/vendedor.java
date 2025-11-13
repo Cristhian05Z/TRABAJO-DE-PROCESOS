@@ -2,6 +2,7 @@ package vista;
 import javax.swing.*;
 import javax.swing.table.*;
 
+import database.conexion;
 import modelo.Usuario;
 
 import java.awt.*;
@@ -31,7 +32,7 @@ public class vendedor extends JFrame {
         }
     }
     
-    public VendedorFrame(Usuario user) {
+    public vendedor(Usuario user) {
         this.currentUser = user;
         
         setTitle("Panel Vendedor - " + user.getNombre());
@@ -151,7 +152,7 @@ public class vendedor extends JFrame {
     
     private void loadProducts() {
         modelProducts.setRowCount(0);
-        try (Connection conn = DatabaseConnection.getConnection()) {
+        try (Connection conn = conexion.getConnection()) {
             String sql = "SELECT * FROM productos WHERE stock > 0";
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
@@ -254,14 +255,14 @@ public class vendedor extends JFrame {
             total += item.precio * item.cantidad;
         }
         
-        try (Connection conn = DatabaseConnection.getConnection()) {
+        try (Connection conn = conexion.getConnection()) {
             conn.setAutoCommit(false);
             
             // Insertar la renta principal
             String sql = "INSERT INTO rentas (usuario_id, vendedor_id, fecha, total, estado) VALUES (?, ?, CURDATE(), ?, 'activo')";
             PreparedStatement pst = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             pst.setInt(1, clienteId);
-            pst.setInt(2, currentUser.getId());
+            pst.setInt(2, currentUser.getIdusuario());
             pst.setDouble(3, total);
             pst.executeUpdate();
             

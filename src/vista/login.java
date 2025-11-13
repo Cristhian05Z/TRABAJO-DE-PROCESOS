@@ -2,7 +2,7 @@ package vista;
 
 import javax.swing.*;
 
-import modelo.usuario;
+import modelo.Usuario;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -99,7 +99,7 @@ public class login extends JFrame {
             ResultSet rs = pst.executeQuery();
             
             if (rs.next()) {
-                usuario user = new usuario(
+                Usuario user = new Usuario(
                     rs.getInt("id"),
                     rs.getString("Nombre"),
                     rs.getString("contraseña"),
@@ -109,15 +109,15 @@ public class login extends JFrame {
                 dispose();
                 
                 // Abrir la interfaz correspondiente según el rol
-                switch (usuario.getTipodeusuario().toLowerCase()) {
+                switch (user.getTipodeusuario().toLowerCase()) {
                     case "admin":
-                        new admin(username).setVisible(true);
+                        new admin(user).setVisible(true);
                         break;
                     case "vendedor":
-                        new VendedorFrame(username).setVisible(true);
+                        new vendedor(username).setVisible(true);
                         break;
                     case "turista":
-                        new TuristaFrame(username).setVisible(true);
+                        new tursita(username).setVisible(true);
                         break;
                 }
             } else {

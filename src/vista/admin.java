@@ -201,7 +201,7 @@ public class admin extends JFrame{
     
     private void loadProducts() {
         modelProducts.setRowCount(0);
-        try (Connection conn = DatabaseConnection.getConnection()) {
+        try (Connection conn = conexion.getConnection()) {
             String sql = "SELECT * FROM productos";
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
@@ -222,7 +222,7 @@ public class admin extends JFrame{
     
     private void loadUsers() {
         modelUsers.setRowCount(0);
-        try (Connection conn = DatabaseConnection.getConnection()) {
+        try (Connection conn = conexion.getConnection()) {
             String sql = "SELECT id, username, nombre, role FROM usuarios";
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
@@ -242,7 +242,7 @@ public class admin extends JFrame{
     
     private void loadSales() {
         modelSales.setRowCount(0);
-        try (Connection conn = DatabaseConnection.getConnection()) {
+        try (Connection conn = conexion.getConnection()) {
             String sql = "SELECT r.id, u.nombre, r.fecha, r.total, r.estado " +
                         "FROM rentas r JOIN usuarios u ON r.usuario_id = u.id";
             Statement stmt = conn.createStatement();
@@ -277,7 +277,7 @@ public class admin extends JFrame{
         
         int option = JOptionPane.showConfirmDialog(this, message, "Agregar Producto", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
-            try (Connection conn = DatabaseConnection.getConnection()) {
+            try (Connection conn = conexion.getConnection()) {
                 String sql = "INSERT INTO productos (nombre, precio, stock, categoria) VALUES (?, ?, ?, ?)";
                 PreparedStatement pst = conn.prepareStatement(sql);
                 pst.setString(1, txtNombre.getText());
@@ -316,7 +316,7 @@ public class admin extends JFrame{
         
         int option = JOptionPane.showConfirmDialog(this, message, "Editar Producto", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
-            try (Connection conn = DatabaseConnection.getConnection()) {
+            try (Connection conn = conexion.getConnection()) {
                 String sql = "UPDATE productos SET nombre=?, precio=?, stock=?, categoria=? WHERE id=?";
                 PreparedStatement pst = conn.prepareStatement(sql);
                 pst.setString(1, txtNombre.getText());
@@ -348,7 +348,7 @@ public class admin extends JFrame{
             JOptionPane.YES_NO_OPTION);
             
         if (confirm == JOptionPane.YES_OPTION) {
-            try (Connection conn = DatabaseConnection.getConnection()) {
+            try (Connection conn = conexion.getConnection()) {
                 String sql = "DELETE FROM productos WHERE id=?";
                 PreparedStatement pst = conn.prepareStatement(sql);
                 pst.setInt(1, id);

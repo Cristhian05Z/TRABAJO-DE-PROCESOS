@@ -2,11 +2,14 @@ package vista;
 
 import javax.swing.*;
 import javax.swing.table.*;
+
+import modelo.Usuario;
+
 import java.awt.*;
 import java.sql.*;
 import java.util.*;
-public class tursita {
-    private User currentUser;
+public class tursita extends JFrame {
+    private Usuario currentUser;
     private JTable tableProducts;
     private DefaultTableModel modelProducts;
     private JTable tableMyRentals;
@@ -31,7 +34,7 @@ public class tursita {
         }
     }
     
-    public tursita(User user) {
+    public tursita(Usuario user) {
         this.currentUser = user;
         
         setTitle("Panel Turista - " + user.getNombre());
@@ -233,7 +236,7 @@ public class tursita {
                         "WHERE r.usuario_id = ? " +
                         "ORDER BY r.fecha DESC";
             PreparedStatement pst = conn.prepareStatement(sql);
-            pst.setInt(1, currentUser.getId());
+            pst.setInt(1, currentUser.getIdusuario());
             ResultSet rs = pst.executeQuery();
             
             while (rs.next()) {
@@ -349,7 +352,7 @@ public class tursita {
             // Insertar la renta
             String sql = "INSERT INTO rentas (usuario_id, fecha, total, estado) VALUES (?, CURDATE(), ?, 'activo')";
             PreparedStatement pst = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            pst.setInt(1, currentUser.getId());
+            pst.setInt(1, currentUser.getIdusuario());
             pst.setDouble(2, total);
             pst.executeUpdate();
             
