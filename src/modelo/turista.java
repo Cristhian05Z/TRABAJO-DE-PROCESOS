@@ -1,6 +1,6 @@
 package modelo;
 
-public class turista extends usuario{
+public class turista extends Usuario{
     private int idturista;
     private String nombreturista;
     private String apellido;

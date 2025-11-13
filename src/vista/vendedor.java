@@ -1,11 +1,15 @@
 package vista;
 import javax.swing.*;
 import javax.swing.table.*;
+
+import modelo.Usuario;
+
 import java.awt.*;
 import java.sql.*;
 import java.util.*;
-public class vendedor {
-    private User currentUser;
+
+public class vendedor extends JFrame {
+    private Usuario currentUser;
     private JTable tableProducts;
     private DefaultTableModel modelProducts;
     private JTable tableCart;
@@ -27,7 +31,7 @@ public class vendedor {
         }
     }
     
-    public VendedorFrame(User user) {
+    public VendedorFrame(Usuario user) {
         this.currentUser = user;
         
         setTitle("Panel Vendedor - " + user.getNombre());

@@ -1,11 +1,14 @@
 package vista;
 
 import javax.swing.*;
+
+import modelo.usuario;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
 
-public class login {
+public class login extends JFrame {
     
     private JTextField txtUsername;
     private JPasswordField txtPassword;
@@ -96,26 +99,25 @@ public class login {
             ResultSet rs = pst.executeQuery();
             
             if (rs.next()) {
-                User user = new User(
+                usuario user = new usuario(
                     rs.getInt("id"),
-                    rs.getString("username"),
-                    rs.getString("password"),
-                    rs.getString("role"),
-                    rs.getString("nombre")
+                    rs.getString("Nombre"),
+                    rs.getString("contraseña"),
+                    rs.getString("tipo de usuario")
                 );
                 
                 dispose();
                 
                 // Abrir la interfaz correspondiente según el rol
-                switch (user.getRole().toLowerCase()) {
+                switch (usuario.getTipodeusuario().toLowerCase()) {
                     case "admin":
-                        new admin(user).setVisible(true);
+                        new admin(username).setVisible(true);
                         break;
                     case "vendedor":
-                        new VendedorFrame(user).setVisible(true);
+                        new VendedorFrame(username).setVisible(true);
                         break;
                     case "turista":
-                        new TuristaFrame(user).setVisible(true);
+                        new TuristaFrame(username).setVisible(true);
                         break;
                 }
             } else {

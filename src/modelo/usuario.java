@@ -1,5 +1,5 @@
 package modelo;
-public class usuario {
+public class Usuario {
     private int idusuario;
     private String Nombre;
     private String contraseña;
@@ -11,9 +11,9 @@ public class usuario {
                 + ", tipodeusuario=" + tipodeusuario + "]";
     }
 
-    public usuario() {}
+    public Usuario() {}
     
-    public usuario(int idusuario, String nombre, String contraseña, String tipodeusuario) {
+    public Usuario(int idusuario, String nombre, String contraseña, String tipodeusuario) {
         this.idusuario = idusuario;
         Nombre = nombre;
         this.contraseña = contraseña;

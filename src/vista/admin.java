@@ -1,11 +1,14 @@
 package vista;
 import javax.swing.*;
 import javax.swing.table.*;
+
+import modelo.Usuario;
+
 import java.awt.*;
 import java.sql.*;
 public class admin extends JFrame{
 
-    private User currentUser;
+    private Usuario currentUser;
     private JTable tableProducts;
     private DefaultTableModel modelProducts;
     private JTable tableUsers;
@@ -14,7 +17,7 @@ public class admin extends JFrame{
     private DefaultTableModel modelSales;
     private JTabbedPane tabbedPane;
     
-    public admin(User user) {
+    public admin(Usuario user) {
         this.currentUser = user;
         
         setTitle("Panel Administrador - " + user.getNombre());
