@@ -49,7 +49,7 @@ public class Alquiler {
     }
     
     public void removerDetalle(DetalleAlquiler detalle) {
-        this.detalles.remove(detalle);
+        this.detalles.remove(detalle);  
     }
     
     public double calcularTotal() {

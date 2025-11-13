@@ -11,7 +11,8 @@ import modelo.Alquiler;
 
 
 public class AlquilerDAO {
-     // Obtener alquiler por ID
+    
+    // Obtener alquiler por ID
     public Alquiler obtenerPorId(int id) throws SQLException {
         String sql = "SELECT * FROM Alquiler WHERE IDAlquiler = ?";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -133,11 +134,10 @@ public class AlquilerDAO {
     // Mapear ResultSet a Alquiler
     private Alquiler mapearAlquiler(ResultSet rs) throws SQLException {
         Alquiler alquiler = new Alquiler();
-        alquiler.setIdAlquiler(rs.getInt("IDAlquiler"));
+        alquiler.setIDAlquiler(rs.getInt("IDAlquiler"));
         alquiler.setFechaDeInicio(rs.getDate("FechaDeInicio").toLocalDate());
         alquiler.setHoraDeInicio(rs.getTime("HoraDeInicio").toLocalTime());
         alquiler.setDuracion(rs.getInt("Duracion"));
         return alquiler;
     }
-
 }
