@@ -69,7 +69,7 @@ public class DetalleAlquiler {
     public Promocion getPromocionObj() { return promocionObj; }
     public void setPromocionObj(Promocion promocionObj) { 
         this.promocionObj = promocionObj;
-        this.IDPromocion = promocionObj != null ? promocionObj.getIdPromocion() : null;
+        this.IDPromocion = promocionObj != null ? promocionObj.getIDPromocion() : null;
     }
     
     // Métodos de negocio
