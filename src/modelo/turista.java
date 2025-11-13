@@ -70,6 +70,9 @@ public class turista extends usuario{
         this.telefono = telefono;
         this.email = email;
     }
+    public String getNombreCompleto() {
+        return nombreturista + " " + apellido;
+    }
 
 
 

@@ -42,4 +42,11 @@ public class promocion {
         this.porcentajeDescuento = porcentajeDescuento;
         this.condiciones = condiciones;
     }
+    public double calcularDescuento(double monto) {
+        return monto * (porcentajeDescuento / 100.0);
+    }
+    
+    public double aplicarDescuento(double monto) {
+        return monto - calcularDescuento(monto);
+    }
 }
