@@ -2,7 +2,7 @@ package modelo;
 
 
 public class Recurso {
-    private int IDRecursos;
+    private String IDRecursos;
     private String Recurso;
     private String Descripcion;
     private double TarifaPorHora;
@@ -14,11 +14,11 @@ public class Recurso {
                 + ", TarifaPorHora=" + TarifaPorHora + ", Estado=" + Estado + "]";
     }
 
-    public int getIDRecursos() {
+    public String getIDRecursos() {
         return IDRecursos;
     }
 
-    public void setIDRecursos(int iDRecursos) {
+    public void setIDRecursos(String iDRecursos) {
         IDRecursos = iDRecursos;
     }
 
@@ -59,7 +59,7 @@ public class Recurso {
 
     public Recurso() {}
     
-    public Recurso(int IDRecursos, String Recurso, String Descripcion, 
+    public Recurso(String IDRecursos, String Recurso, String Descripcion, 
                    double TarifaPorHora, String Estado) {
         this.IDRecursos = IDRecursos;
         this.Recurso = Recurso;

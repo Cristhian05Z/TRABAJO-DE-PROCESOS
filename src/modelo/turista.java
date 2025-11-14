@@ -1,7 +1,7 @@
 package modelo;
 
 public class Turista extends Usuario{
-    private int IDTurista;
+    private String IDTurista;
     private String Nombre;
     private String Apellido;
     private String DNI;
@@ -14,10 +14,10 @@ public class Turista extends Usuario{
         return "Turista [IDTurista=" + IDTurista + ", Nombre=" + Nombre + ", Apellido=" + Apellido + ", DNI=" + DNI
                 + ", Nacionalidad=" + Nacionalidad + ", Telefono=" + Telefono + ", Email=" + Email + "]";
     }
-    public int getIDTurista() {
+    public String getIDTurista() {
         return IDTurista;
     }
-    public void setIDTurista(int iDTurista) {
+    public void setIDTurista(String iDTurista) {
         IDTurista = iDTurista;
     }
     public String getNombre() {
@@ -64,7 +64,7 @@ public class Turista extends Usuario{
     }
 
 
-    public Turista(int IDUsuario, String TipoDeUsuario, String Nombre, String Contraseña, int iDTurista, String nombre2,
+    public Turista(String IDUsuario, String TipoDeUsuario, String Nombre, String Contraseña, String iDTurista, String nombre2,
             String apellido, String dNI, String nacionalidad, String telefono, String email) {
         super(IDUsuario, TipoDeUsuario, Nombre, Contraseña);
         IDTurista = iDTurista;
@@ -75,6 +75,7 @@ public class Turista extends Usuario{
         Telefono = telefono;
         Email = email;
     }
+    
 
 
 

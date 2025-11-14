@@ -9,11 +9,11 @@ import modelo.Promocion;
 
 
 public class PromocionDAO {
-        public Promocion obtenerPorId(int id) throws SQLException {
+        public Promocion obtenerPorId(String id) throws SQLException {
         String sql = "SELECT * FROM PROMOCION WHERE IDPromocion = ?";
         try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
-            pst.setInt(1, id);
+            pst.setString(1, id);
             ResultSet rs = pst.executeQuery();
             
             if (rs.next()) {
@@ -71,7 +71,7 @@ public class PromocionDAO {
             
             pst.setDouble(1, promocion.getPorcentajeDescuento());
             pst.setString(2, promocion.getCondiciones());
-            pst.setInt(3, promocion.getIDPromocion());
+            pst.setString(3, promocion.getIDPromocion());
             
             return pst.executeUpdate() > 0;
         }
@@ -92,7 +92,7 @@ public class PromocionDAO {
     // Mapear ResultSet a Promocion
     private Promocion mapearPromocion(ResultSet rs) throws SQLException {
         Promocion promocion = new Promocion();
-        promocion.setIDPromocion(rs.getInt("IDPromocion"));
+        promocion.setIDPromocion(rs.getString("IDPromocion"));
         promocion.setPorcentajeDescuento(rs.getDouble("PorcentajeDescuento"));
         promocion.setCondiciones(rs.getString("Condiciones"));
         return promocion;

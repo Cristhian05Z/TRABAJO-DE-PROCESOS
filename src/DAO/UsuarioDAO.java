@@ -87,7 +87,7 @@ public class UsuarioDAO {
             pst.setString(1, usuario.getTipoDeUsuario());
             pst.setString(2, usuario.getNombre());
             pst.setString(3, usuario.getContraseña());
-            pst.setInt(4, usuario.getIDUsuario());
+            pst.setString(4, usuario.getIDUsuario());
             
             return pst.executeUpdate() > 0;
         }
@@ -108,7 +108,7 @@ public class UsuarioDAO {
     // Mapear ResultSet a Usuario
     private Usuario mapearUsuario(ResultSet rs) throws SQLException {
         Usuario usuario = new Usuario();
-        usuario.setIDUsuario(rs.getInt("IDUsuario"));
+        usuario.setIDUsuario(rs.getString("IDUsuario"));
         usuario.setTipoDeUsuario(rs.getString("TipoDeUsuario"));
         usuario.setNombre(rs.getString("Nombre"));
         usuario.setContraseña(rs.getString("Contraseña"));

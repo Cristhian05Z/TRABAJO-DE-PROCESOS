@@ -1,21 +1,21 @@
 package modelo;
 
 public class Promocion {
-     private int IDPromocion;
+     private String IDPromocion;
     private double PorcentajeDescuento;
     private String Condiciones;
     
     public Promocion() {}
     
-    public Promocion(int IDPromocion, double PorcentajeDescuento, String Condiciones) {
+    public Promocion(String IDPromocion, double PorcentajeDescuento, String Condiciones) {
         this.IDPromocion = IDPromocion;
         this.PorcentajeDescuento = PorcentajeDescuento;
         this.Condiciones = Condiciones;
     }
     
     // Getters y Setters
-    public int getIDPromocion() { return IDPromocion; }
-    public void setIDPromocion(int IDPromocion) { this.IDPromocion = IDPromocion; }
+    public String getIDPromocion() { return IDPromocion; }
+    public void setIDPromocion(String IDPromocion) { this.IDPromocion = IDPromocion; }
     
     public double getPorcentajeDescuento() { return PorcentajeDescuento; }
     public void setPorcentajeDescuento(double PorcentajeDescuento) { 

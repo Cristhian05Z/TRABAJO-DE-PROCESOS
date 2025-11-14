@@ -7,11 +7,11 @@ import modelo.Turista;
 
 public class TuristaDAO{
 
-public Turista obtenerPorId(int id) throws SQLException {
+public Turista obtenerPorId(String id) throws SQLException {
         String sql = "SELECT * FROM TURISTAA WHERE IDTurista = ?";
         try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
-            pst.setInt(1, id);
+            pst.setString(1, id);
             ResultSet rs = pst.executeQuery();
             
             if (rs.next()) {
@@ -93,7 +93,7 @@ public Turista obtenerPorId(int id) throws SQLException {
             pst.setString(4, turista.getNacionalidad());
             pst.setString(5, turista.getTelefono());
             pst.setString(6, turista.getEmail());
-            pst.setInt(7, turista.getIDTurista());
+            pst.setString(7, turista.getIDTurista());
             
             return pst.executeUpdate() > 0;
         }
@@ -134,7 +134,7 @@ public Turista obtenerPorId(int id) throws SQLException {
     // Mapear ResultSet a Turista
     private Turista mapearTurista(ResultSet rs) throws SQLException {
         Turista turista = new Turista();
-        turista.setIDTurista(rs.getInt("IDTurista"));
+        turista.setIDTurista(rs.getString("IDTurista"));
         turista.setNombre(rs.getString("Nombre"));
         turista.setApellido(rs.getString("Apellido"));
         turista.setDNI(rs.getString("DNI"));

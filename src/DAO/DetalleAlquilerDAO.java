@@ -7,11 +7,11 @@ import modelo.DetalleAlquiler;
 
 public class DetalleAlquilerDAO {
     // Obtener detalle por ID
-    public DetalleAlquiler obtenerPorId(int id) throws SQLException {
+    public DetalleAlquiler obtenerPorId(String id) throws SQLException {
         String sql = "SELECT * FROM DETALLEALQUILER WHERE IDDetalleAlquiler = ?";
         try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
-            pst.setInt(1, id);
+            pst.setString(1, id);
             ResultSet rs = pst.executeQuery();
             
             if (rs.next()) {
@@ -22,13 +22,13 @@ public class DetalleAlquilerDAO {
     }
     
     // Obtener detalles de un alquiler
-    public List<DetalleAlquiler> obtenerPorAlquiler(int idAlquiler) throws SQLException {
+    public List<DetalleAlquiler> obtenerPorAlquiler(String idAlquiler) throws SQLException {
         List<DetalleAlquiler> detalles = new ArrayList<>();
         String sql = "SELECT * FROM DETALLEALQUILER WHERE IDAlquiler = ?";
         
         try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
-            pst.setInt(1, idAlquiler);
+            pst.setString(1, idAlquiler);
             ResultSet rs = pst.executeQuery();
             
             RecursoDAO recursoDAO = new RecursoDAO();
@@ -60,12 +60,12 @@ public class DetalleAlquilerDAO {
         try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
-            pst.setInt(1, detalle.getIDRecurso());
-            pst.setInt(2, detalle.getIDTurista());
-            pst.setInt(3, detalle.getIDAlquiler());
+            pst.setString(1, detalle.getIDRecurso());
+            pst.setString(2, detalle.getIDTurista());
+            pst.setString(3, detalle.getIDAlquiler());
             
             if (detalle.getIDPromocion() != null) {
-                pst.setInt(4, detalle.getIDPromocion());
+                pst.setString(4, detalle.getIDPromocion());
             } else {
                 pst.setNull(4, Types.INTEGER);
             }
@@ -90,16 +90,16 @@ public class DetalleAlquilerDAO {
         try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             
-            pst.setInt(1, detalle.getIDRecurso());
-            pst.setInt(2, detalle.getIDTurista());
+            pst.setString(1, detalle.getIDRecurso());
+            pst.setString(2, detalle.getIDTurista());
             
             if (detalle.getIDPromocion() != null) {
-                pst.setInt(3, detalle.getIDPromocion());
+                pst.setString(3, detalle.getIDPromocion());
             } else {
                 pst.setNull(3, Types.INTEGER);
             }
             
-            pst.setInt(4, detalle.getIDDetalleAlquiler());
+            pst.setString(4, detalle.getIDDetalleAlquiler());
             
             return pst.executeUpdate() > 0;
         }
@@ -118,12 +118,12 @@ public class DetalleAlquilerDAO {
     }
      private DetalleAlquiler mapearDetalle(ResultSet rs) throws SQLException {
         DetalleAlquiler detalle = new DetalleAlquiler();
-        detalle.setIDDetalleAlquiler(rs.getInt("iDDetalleAlquiler"));
-        detalle.setIDAlquiler(rs.getInt("iDAlquiler"));
-        detalle.setIDTurista(rs.getInt("iDTurista"));
-        detalle.setIDRecurso(rs.getInt("iDRecurso"));
+        detalle.setIDDetalleAlquiler(rs.getString("iDDetalleAlquiler"));
+        detalle.setIDAlquiler(rs.getString("iDAlquiler"));
+        detalle.setIDTurista(rs.getString("iDTurista"));
+        detalle.setIDRecurso(rs.getString("iDRecurso"));
         
-        int idPromocion = rs.getInt("idPromocion");
+        String idPromocion = rs.getString("idPromocion");
         if (!rs.wasNull()) {
             detalle.setIDPromocion(idPromocion);
         }

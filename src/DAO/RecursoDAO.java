@@ -7,11 +7,11 @@ import database.conexion;
 import modelo.Recurso;
 
 public class RecursoDAO {
-    public Recurso obtenerPorId(int id) throws SQLException {
+    public Recurso obtenerPorId(String id) throws SQLException {
         String sql = "SELECT * FROM RECURSOS WHERE IDRecursos = ?";
         try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
-            pst.setInt(1, id);
+            pst.setString(1, id);
             ResultSet rs = pst.executeQuery();
             
             if (rs.next()) {
@@ -90,7 +90,7 @@ public class RecursoDAO {
             pst.setString(2, recurso.getDescripcion());
             pst.setDouble(3, recurso.getTarifaPorHora());
             pst.setString(4, recurso.getEstado());
-            pst.setInt(5, recurso.getIDRecursos());
+            pst.setString(5, recurso.getIDRecursos());
             
             return pst.executeUpdate() > 0;
         }
@@ -142,7 +142,7 @@ public class RecursoDAO {
     // Mapear ResultSet a Recurso
     private Recurso mapearRecurso(ResultSet rs) throws SQLException {
         Recurso recurso = new Recurso();
-        recurso.setIDRecursos(rs.getInt("IDRecursos"));
+        recurso.setIDRecursos(rs.getString("IDRecursos"));
         recurso.setRecurso(rs.getString("Recurso"));
         recurso.setDescripcion(rs.getString("Descripcion"));
         recurso.setTarifaPorHora(rs.getDouble("TarifaPorHora"));

@@ -1,14 +1,14 @@
 package modelo;
 
 public class Usuario {
-    private int IDUsuario;
+    private String IDUsuario;
     private String TipoDeUsuario; // admin, vendedor, turista
     private String Nombre;
     private String Contraseña;
     
     public Usuario() {}
     
-    public Usuario(int IDUsuario, String TipoDeUsuario, String Nombre, String Contraseña) {
+    public Usuario(String IDUsuario, String TipoDeUsuario, String Nombre, String Contraseña) {
         this.IDUsuario = IDUsuario;
         this.TipoDeUsuario = TipoDeUsuario;
         this.Nombre = Nombre;
@@ -16,8 +16,8 @@ public class Usuario {
     }
     
     // Getters y Setters
-    public int getIDUsuario() { return IDUsuario; }
-    public void setIDUsuario(int IDUsuario) { this.IDUsuario = IDUsuario; }
+    public String getIDUsuario() { return IDUsuario; }
+    public void setIDUsuario(String IDUsuario) { this.IDUsuario = IDUsuario; }
     
     public String getTipoDeUsuario() { return TipoDeUsuario; }
     public void setTipoDeUsuario(String TipoDeUsuario) { this.TipoDeUsuario = TipoDeUsuario; }
@@ -27,7 +27,17 @@ public class Usuario {
     
     public String getContraseña() { return Contraseña; }
     public void setContraseña(String Contraseña) { this.Contraseña = Contraseña; }
+    public boolean esAdmin() {
+        return TipoDeUsuario != null && TipoDeUsuario.toUpperCase().contains("ADMINISTRAD");
+    }
     
+    public boolean esEmpleado() {
+        return TipoDeUsuario != null && TipoDeUsuario.equalsIgnoreCase("EMPLEADO");
+    }
+    
+    public boolean esTurista() {
+        return TipoDeUsuario != null && TipoDeUsuario.equalsIgnoreCase("TURISTA");
+    }
     @Override
     public String toString() {
         return "Usuario{" +

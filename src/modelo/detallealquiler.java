@@ -1,11 +1,11 @@
 package modelo;
 
 public class DetalleAlquiler {
-    private int IDDetalleAlquiler;
-    private int IDRecurso;
-    private int IDTurista;
-    private int IDAlquiler;
-    private Integer IDPromocion; // Puede ser null
+    private String IDDetalleAlquiler;
+    private String IDRecurso;
+    private String IDTurista;
+    private String IDAlquiler;
+    private String IDPromocion; // Puede ser null
     private String FormatodePago;
     // Objetos relacionados (para facilitar el uso)
     private Recurso recursoObj;
@@ -14,8 +14,8 @@ public class DetalleAlquiler {
     
     public DetalleAlquiler() {}
     
-    public DetalleAlquiler(int IDDetalleAlquiler, int IDRecurso, int IDTurista, 
-                          int IDAlquiler, Integer IDPromocion, String FormatodePago) {
+    public DetalleAlquiler(String IDDetalleAlquiler, String IDRecurso, String IDTurista, 
+                          String IDAlquiler, String IDPromocion, String FormatodePago) {
         this.IDDetalleAlquiler = IDDetalleAlquiler;
         this.IDRecurso = IDRecurso;
         this.IDTurista = IDTurista;
@@ -25,22 +25,22 @@ public class DetalleAlquiler {
     }
     
     // Getters y Setters
-    public int getIDDetalleAlquiler() { return IDDetalleAlquiler; }
-    public void setIDDetalleAlquiler(int IDDetalleAlquiler) { 
+    public String getIDDetalleAlquiler() { return IDDetalleAlquiler; }
+    public void setIDDetalleAlquiler(String IDDetalleAlquiler) { 
         this.IDDetalleAlquiler = IDDetalleAlquiler; 
     }
     
-    public int getIDRecurso() { return IDRecurso; }
-    public void setIDRecurso(int IDRecurso) { this.IDRecurso = IDRecurso; }
+    public String getIDRecurso() { return IDRecurso; }
+    public void setIDRecurso(String IDRecurso) { this.IDRecurso = IDRecurso; }
     
-    public int getIDTurista() { return IDTurista; }
-    public void setIDTurista(int IDTurista) { this.IDTurista = IDTurista; }
+    public String getIDTurista() { return IDTurista; }
+    public void setIDTurista(String IDTurista) { this.IDTurista = IDTurista; }
     
-    public int getIDAlquiler() { return IDAlquiler; }
-    public void setIDAlquiler(int IDAlquiler) { this.IDAlquiler = IDAlquiler; }
+    public String getIDAlquiler() { return IDAlquiler; }
+    public void setIDAlquiler(String IDAlquiler) { this.IDAlquiler = IDAlquiler; }
     
-    public Integer getIDPromocion() { return IDPromocion; }
-    public void setIDPromocion(Integer IDPromocion) { this.IDPromocion = IDPromocion; }
+    public String getIDPromocion() { return IDPromocion; }
+    public void setIDPromocion(String IDPromocion) { this.IDPromocion = IDPromocion; }
       public String getFormatodePago() {
         return FormatodePago;
     }

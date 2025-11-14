@@ -1,6 +1,8 @@
 package vista;
 
 import javax.swing.*;
+
+import Utilidades.passwordh;
 import modelo.Usuario;
 import database.conexion;
 import java.awt.*;
@@ -14,7 +16,7 @@ public class login extends JFrame {
     private JButton btnLogin;
     
     public login() {
-        setTitle("Beach Rental - Login");
+        setTitle("Alquiler de Playa - Login");
         setSize(400, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -38,7 +40,7 @@ public class login extends JFrame {
         mainPanel.setLayout(null);
         
         // Título
-        JLabel lblTitle = new JLabel("Beach Rental System");
+        JLabel lblTitle = new JLabel("Sistema de Alquiler de Playa");
         lblTitle.setFont(new Font("Arial", Font.BOLD, 24));
         lblTitle.setForeground(Color.WHITE);
         lblTitle.setBounds(70, 30, 300, 30);
@@ -76,63 +78,91 @@ public class login extends JFrame {
         btnLogin.setForeground(Color.WHITE);
         btnLogin.setFocusPainted(false);
         btnLogin.setFont(new Font("Arial", Font.BOLD, 14));
-        btnLogin.addActionListener(e -> login());
+        btnLogin.addActionListener(e -> loginuser());
         mainPanel.add(btnLogin);
         
         add(mainPanel);
         
         // Enter para login
-        txtPassword.addActionListener(e -> login());
+        txtPassword.addActionListener(e -> loginuser());
     }
     
-    private void login() {
-        String username = txtUsername.getText();
-        String password = new String(txtPassword.getPassword());
-        
-        try (Connection conn = conexion.getConnection()) {
-            String sql = "SELECT * FROM usuarios WHERE username = ? AND password = ?";
-            PreparedStatement pst = conn.prepareStatement(sql);
-            pst.setString(1, username);
-            pst.setString(2, password);
-            
-            ResultSet rs = pst.executeQuery();
-            
-            if (rs.next()) {
-                Usuario user = new Usuario(
-                    rs.getInt("id"),
-                    rs.getString("Nombre"),
-                    rs.getString("contraseña"),
-                    rs.getString("tipo de usuario")
-                );
-                
-                dispose();
-                
-                // Abrir la interfaz correspondiente según el rol
-                switch (user.getTipoDeUsuario().toLowerCase()) {
-                    case "admin":
-                        new admin(user).setVisible(true);
-                        break;
-                    case "vendedor":
-                        new vendedor(username).setVisible(true);
-                        break;
-                    case "turista":
-                        new tursita(username).setVisible(true);
-                        break;
-                }
-            } else {
-                JOptionPane.showMessageDialog(this, 
-                    "Usuario o contraseña incorrectos", 
-                    "Error", 
-                    JOptionPane.ERROR_MESSAGE);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, 
-                "Error de conexión: " + e.getMessage(), 
-                "Error", 
-                JOptionPane.ERROR_MESSAGE);
-        }
+    private void loginuser() {
+
+    String username = txtUsername.getText().trim();
+    String password = new String(txtPassword.getPassword()).trim();
+
+    if (username.isEmpty() || password.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Complete todos los campos.");
+        return;
     }
+
+    try (Connection conn = conexion.getConnection()) {
+            String sql = "SELECT * FROM USUARIO WHERE (IDUsuario = ? OR UPPER(Nombre) = UPPER(?)) AND Contraseña = ?";
+            PreparedStatement pst = conn.prepareStatement(sql);
+            pst.setString(1, username);   
+            pst.setString(3, password);
+
+
+        ResultSet rs = pst.executeQuery();
+
+        if (rs.next()) {
+                String passwordHash = rs.getString("Contrasena");
+                
+                // OPCIÓN 1: Si las contraseñas están encriptadas
+                String passwordIngresadaHash = passwordh.encriptar(password);
+                
+                // OPCIÓN 2: Si quieres comparar en texto plano (temporal)
+                // boolean passwordCorrecta = password.equals(passwordHash);
+                
+                // Comparar hash
+                boolean passwordCorrecta = passwordIngresadaHash.equals(passwordHash);
+                
+                if (passwordCorrecta) {
+                    Usuario user = new Usuario(
+                        rs.getString("IDUsuario"),
+                        rs.getString("TipoDeUsuario"),
+                        rs.getString("Nombre"),
+                        rs.getString("Contrasena")
+                    );
+                    
+                    dispose();
+                    
+                    // Abrir interfaz según el rol
+                    if (user.esAdmin()) {
+                        new admin(user).setVisible(true);
+                    } else if (user.esEmpleado()) {
+                        new vendedor(user).setVisible(true);
+                    } else if (user.esTurista()) {
+                        new turista(user).setVisible(true);
+                    } else {
+                        JOptionPane.showMessageDialog(this, 
+                            "Tipo de usuario no reconocido: " + user.getTipoDeUsuario(), 
+                            "Error", 
+                            JOptionPane.ERROR_MESSAGE);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(this, 
+                        "Contraseña incorrecta", 
+                        "Error", 
+                        JOptionPane.ERROR_MESSAGE);}
+}
+                
+else {
+
+            JOptionPane.showMessageDialog(this,
+                "Usuario o contraseña incorrectos.",
+                "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this,
+            "Error al conectar: " + e.getMessage(),
+            "Error", JOptionPane.ERROR_MESSAGE);
+    }
+}
+
     
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {

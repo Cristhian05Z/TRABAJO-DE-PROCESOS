@@ -1,18 +1,21 @@
 package database;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
 public class conexion {
-    private static final String URL = "jdbc:sqlserver://localhost:1433;databaseName=Alquiler de Playa;encrypt=true;trustServerCertificate=true";
-    private static final String USER = "sa"; 
-    private static final String PASSWORD = "13142485";
-     public static Connection getConnection() throws SQLException {
+
+    private static final String URL = "jdbc:sqlserver://localhost:1433;databaseName=Alquiler De Playa;encrypt=false;";
+    private static final String USER = "sa"; // o el usuario que uses
+    private static final String PASS = "13142485";
+
+    public static Connection getConnection() {
         try {
-            // Cargar el driver de SQL Server
-            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-            return DriverManager.getConnection(URL, USER, PASSWORD);
-        } catch (ClassNotFoundException e) {
-            throw new SQLException("Driver de SQL Server no encontrado", e);
+            return DriverManager.getConnection(URL, USER, PASS);
+        } catch (SQLException e) {
+            System.out.println("❌ Error al conectar a SQL Server: " + e.getMessage());
+            return null;
         }
     }
-
 }

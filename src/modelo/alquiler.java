@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Alquiler {
-    private int IDAlquiler;
+    private String IDAlquiler;
     private LocalDate FechaDeInicio;
     private LocalTime HoraDeInicio;
     private int Duracion; // en horas
@@ -19,7 +19,7 @@ public class Alquiler {
         this.HoraDeInicio = LocalTime.now();
     }
     
-    public Alquiler(int IDAlquiler, LocalDate FechaDeInicio, LocalTime HoraDeInicio, int Duracion) {
+    public Alquiler(String IDAlquiler, LocalDate FechaDeInicio, LocalTime HoraDeInicio, int Duracion) {
         this.IDAlquiler = IDAlquiler;
         this.FechaDeInicio = FechaDeInicio;
         this.HoraDeInicio = HoraDeInicio;
@@ -28,8 +28,8 @@ public class Alquiler {
     }
     
     // Getters y Setters
-    public int getIDAlquiler() { return IDAlquiler; }
-    public void setIDAlquiler(int IDAlquiler) { this.IDAlquiler = IDAlquiler; }
+    public String getIDAlquiler() { return IDAlquiler; }
+    public void setIDAlquiler(String IDAlquiler) { this.IDAlquiler = IDAlquiler; }
     
     public LocalDate getFechaDeInicio() { return FechaDeInicio; }
     public void setFechaDeInicio(LocalDate FechaDeInicio) { this.FechaDeInicio = FechaDeInicio; }

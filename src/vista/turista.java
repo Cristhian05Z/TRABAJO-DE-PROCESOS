@@ -8,7 +8,7 @@ import modelo.Usuario;
 import java.awt.*;
 import java.sql.*;
 import java.util.*;
-public class tursita extends JFrame {
+public class turista extends JFrame {
     private Usuario currentUser;
     private JTable tableProducts;
     private DefaultTableModel modelProducts;
@@ -34,7 +34,7 @@ public class tursita extends JFrame {
         }
     }
     
-    public tursita(Usuario user) {
+    public turista(Usuario user) {
         this.currentUser = user;
         
         setTitle("Panel Turista - " + user.getNombre());
@@ -236,7 +236,7 @@ public class tursita extends JFrame {
                         "WHERE r.usuario_id = ? " +
                         "ORDER BY r.fecha DESC";
             PreparedStatement pst = conn.prepareStatement(sql);
-            pst.setInt(1, currentUser.getIDUsuario());
+            pst.setString(1, currentUser.getIDUsuario());
             ResultSet rs = pst.executeQuery();
             
             while (rs.next()) {
@@ -352,7 +352,7 @@ public class tursita extends JFrame {
             // Insertar la renta
             String sql = "INSERT INTO rentas (usuario_id, fecha, total, estado) VALUES (?, CURDATE(), ?, 'activo')";
             PreparedStatement pst = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            pst.setInt(1, currentUser.getIDUsuario());
+            pst.setString(1, currentUser.getIDUsuario());
             pst.setDouble(2, total);
             pst.executeUpdate();
             
