@@ -2,14 +2,14 @@ package DAO;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-
+import database.conexion;
 import modelo.Turista;
 
 public class TuristaDAO{
 
 public Turista obtenerPorId(int id) throws SQLException {
         String sql = "SELECT * FROM TURISTAA WHERE IDTurista = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setInt(1, id);
             ResultSet rs = pst.executeQuery();
@@ -24,7 +24,7 @@ public Turista obtenerPorId(int id) throws SQLException {
     // Obtener turista por DNI
     public Turista obtenerPorDNI(String dni) throws SQLException {
         String sql = "SELECT * FROM TURISTAA WHERE DNI = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setString(1, dni);
             ResultSet rs = pst.executeQuery();
@@ -41,7 +41,7 @@ public Turista obtenerPorId(int id) throws SQLException {
         List<Turista> turistas = new ArrayList<>();
         String sql = "SELECT * FROM TURISTAA ORDER BY Nombre, Apellido";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             
@@ -57,7 +57,7 @@ public Turista obtenerPorId(int id) throws SQLException {
         String sql = "INSERT INTO TURISTAA (Nombre, Apellido, DNI, Nacionalidad, Telefono, Email) " +
                      "VALUES (?, ?, ?, ?, ?, ?)";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
             pst.setString(1, turista.getNombre());
@@ -84,7 +84,7 @@ public Turista obtenerPorId(int id) throws SQLException {
         String sql = "UPDATE TURISTAA SET Nombre = ?, Apellido = ?, DNI = ?, " +
                      "Nacionalidad = ?, Telefono = ?, Email = ? WHERE IDTurista = ?";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             
             pst.setString(1, turista.getNombre());
@@ -103,7 +103,7 @@ public Turista obtenerPorId(int id) throws SQLException {
     public boolean eliminar(int id) throws SQLException {
         String sql = "DELETE FROM TURISTAA WHERE IDTurista = ?";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             
             pst.setInt(1, id);
@@ -116,7 +116,7 @@ public Turista obtenerPorId(int id) throws SQLException {
         List<Turista> turistas = new ArrayList<>();
         String sql = "SELECT * FROM TURISTAA WHERE Nombre LIKE ? OR Apellido LIKE ?";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             
             String patron = "%" + nombre + "%";

@@ -3,14 +3,14 @@ package DAO;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-
+import database.conexion;
 import modelo.Usuario;
 
 
 public class UsuarioDAO {
     public Usuario login(String nombre, String contrasena) throws SQLException {
         String sql = "SELECT * FROM USUARIO WHERE Nombre = ? AND Contrasena = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setString(1, nombre);
             pst.setString(2, contrasena);
@@ -26,7 +26,7 @@ public class UsuarioDAO {
     // Obtener usuario por ID
     public Usuario obtenerPorId(int id) throws SQLException {
         String sql = "SELECT * FROM USUARIO WHERE IDUsuario = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setInt(1, id);
             ResultSet rs = pst.executeQuery();
@@ -43,7 +43,7 @@ public class UsuarioDAO {
         List<Usuario> usuarios = new ArrayList<>();
         String sql = "SELECT * FROM USUARIO ORDER BY Nombre";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             
@@ -58,12 +58,12 @@ public class UsuarioDAO {
     public int insertar(Usuario usuario) throws SQLException {
         String sql = "INSERT INTO USUARIO (TipoDeUsuario, Nombre, Contrasena) VALUES (?, ?, ?)";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
             pst.setString(1, usuario.getTipoDeUsuario());
             pst.setString(2, usuario.getNombre());
-            pst.setString(3, usuario.getContrasena());
+            pst.setString(3, usuario.getContraseña());
             
             int filasAfectadas = pst.executeUpdate();
             
@@ -81,7 +81,7 @@ public class UsuarioDAO {
     public boolean actualizar(Usuario usuario) throws SQLException {
         String sql = "UPDATE USUARIO SET TipoDeUsuario = ?, Nombre = ?, Contrasena = ? WHERE IDUsuario = ?";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             
             pst.setString(1, usuario.getTipoDeUsuario());
@@ -97,7 +97,7 @@ public class UsuarioDAO {
     public boolean eliminar(int id) throws SQLException {
         String sql = "DELETE FROM USUARIO WHERE IDUsuario = ?";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             
             pst.setInt(1, id);

@@ -1,11 +1,13 @@
 package vista;
+
 import javax.swing.*;
 import javax.swing.table.*;
-
 import modelo.Usuario;
-
+import database.conexion;
 import java.awt.*;
 import java.sql.*;
+
+
 public class admin extends JFrame{
 
     private Usuario currentUser;

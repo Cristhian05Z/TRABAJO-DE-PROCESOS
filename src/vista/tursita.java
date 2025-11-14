@@ -2,7 +2,7 @@ package vista;
 
 import javax.swing.*;
 import javax.swing.table.*;
-
+import database.conexion;
 import modelo.Usuario;
 
 import java.awt.*;
@@ -207,7 +207,7 @@ public class tursita extends JFrame {
     
     private void loadProducts() {
         modelProducts.setRowCount(0);
-        try (Connection conn = DatabaseConnection.getConnection()) {
+        try (Connection conn = conexion.getConnection()) {
             String sql = "SELECT * FROM productos WHERE stock > 0";
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
@@ -228,7 +228,7 @@ public class tursita extends JFrame {
     
     private void loadMyRentals() {
         modelMyRentals.setRowCount(0);
-        try (Connection conn = DatabaseConnection.getConnection()) {
+        try (Connection conn = conexion.getConnection()) {
             String sql = "SELECT r.id, r.fecha, p.nombre, rd.cantidad, rd.precio_unitario * rd.cantidad as total, r.estado " +
                         "FROM rentas r " +
                         "JOIN renta_detalles rd ON r.id = rd.renta_id " +
@@ -236,7 +236,7 @@ public class tursita extends JFrame {
                         "WHERE r.usuario_id = ? " +
                         "ORDER BY r.fecha DESC";
             PreparedStatement pst = conn.prepareStatement(sql);
-            pst.setInt(1, currentUser.getIdusuario());
+            pst.setInt(1, currentUser.getIDUsuario());
             ResultSet rs = pst.executeQuery();
             
             while (rs.next()) {
@@ -346,13 +346,13 @@ public class tursita extends JFrame {
             total += item.precio * item.cantidad;
         }
         
-        try (Connection conn = DatabaseConnection.getConnection()) {
+        try (Connection conn = conexion.getConnection()) {
             conn.setAutoCommit(false);
             
             // Insertar la renta
             String sql = "INSERT INTO rentas (usuario_id, fecha, total, estado) VALUES (?, CURDATE(), ?, 'activo')";
             PreparedStatement pst = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            pst.setInt(1, currentUser.getIdusuario());
+            pst.setInt(1, currentUser.getIDUsuario());
             pst.setDouble(2, total);
             pst.executeUpdate();
             
@@ -419,7 +419,7 @@ public class tursita extends JFrame {
             
         if (confirm != JOptionPane.YES_OPTION) return;
         
-        try (Connection conn = DatabaseConnection.getConnection()) {
+        try (Connection conn = conexion.getConnection()) {
             conn.setAutoCommit(false);
             
             // Actualizar estado

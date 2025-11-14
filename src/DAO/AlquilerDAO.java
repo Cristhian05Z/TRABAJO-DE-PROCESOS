@@ -7,6 +7,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import database.conexion;
 import modelo.Alquiler;
 
 
@@ -15,7 +16,7 @@ public class AlquilerDAO {
     // Obtener alquiler por ID
     public Alquiler obtenerPorId(int id) throws SQLException {
         String sql = "SELECT * FROM Alquiler WHERE IDAlquiler = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setInt(1, id);
             ResultSet rs = pst.executeQuery();
@@ -36,7 +37,7 @@ public class AlquilerDAO {
         List<Alquiler> alquileres = new ArrayList<>();
         String sql = "SELECT * FROM Alquiler ORDER BY FechaDeInicio DESC, HoraDeInicio DESC";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             
@@ -52,7 +53,7 @@ public class AlquilerDAO {
         List<Alquiler> alquileres = new ArrayList<>();
         String sql = "SELECT * FROM Alquiler WHERE FechaDeInicio = ? ORDER BY HoraDeInicio";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setDate(1, Date.valueOf(fecha));
             ResultSet rs = pst.executeQuery();
@@ -68,7 +69,7 @@ public class AlquilerDAO {
     public int crear(Alquiler alquiler) throws SQLException {
         String sql = "INSERT INTO Alquiler (FechaDeInicio, HoraDeInicio, Duracion) VALUES (?, ?, ?)";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
             pst.setDate(1, Date.valueOf(alquiler.getFechaDeInicio()));
@@ -92,7 +93,7 @@ public class AlquilerDAO {
         String sql = "UPDATE Alquiler SET FechaDeInicio = ?, HoraDeInicio = ?, Duracion = ? " +
                      "WHERE IDAlquiler = ?";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             
             pst.setDate(1, Date.valueOf(alquiler.getFechaDeInicio()));
@@ -108,7 +109,7 @@ public class AlquilerDAO {
     public boolean eliminar(int id) throws SQLException {
         String sql = "DELETE FROM Alquiler WHERE IDAlquiler = ?";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             
             pst.setInt(1, id);
@@ -120,7 +121,7 @@ public class AlquilerDAO {
     public int contarDelDia() throws SQLException {
         String sql = "SELECT COUNT(*) as total FROM Alquiler WHERE FechaDeInicio = CONVERT(date, GETDATE())";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             

@@ -3,13 +3,13 @@ package DAO;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-
+import database.conexion;
 import modelo.Recurso;
 
 public class RecursoDAO {
     public Recurso obtenerPorId(int id) throws SQLException {
         String sql = "SELECT * FROM RECURSOS WHERE IDRecursos = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setInt(1, id);
             ResultSet rs = pst.executeQuery();
@@ -26,7 +26,7 @@ public class RecursoDAO {
         List<Recurso> recursos = new ArrayList<>();
         String sql = "SELECT * FROM RECURSOS ORDER BY Recurso";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             
@@ -42,7 +42,7 @@ public class RecursoDAO {
         List<Recurso> recursos = new ArrayList<>();
         String sql = "SELECT * FROM RECURSOS WHERE Estado = 'disponible' ORDER BY Recurso";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             
@@ -58,7 +58,7 @@ public class RecursoDAO {
         String sql = "INSERT INTO RECURSOS (Recurso, Descripcion, TarifaPorHora, Estado) " +
                      "VALUES (?, ?, ?, ?)";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
             pst.setString(1, recurso.getRecurso());
@@ -83,7 +83,7 @@ public class RecursoDAO {
         String sql = "UPDATE RECURSOS SET Recurso = ?, Descripcion = ?, " +
                      "TarifaPorHora = ?, Estado = ? WHERE IDRecursos = ?";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             
             pst.setString(1, recurso.getRecurso());
@@ -100,7 +100,7 @@ public class RecursoDAO {
     public boolean actualizarEstado(int id, String nuevoEstado) throws SQLException {
         String sql = "UPDATE RECURSOS SET Estado = ? WHERE IDRecursos = ?";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             
             pst.setString(1, nuevoEstado);
@@ -114,7 +114,7 @@ public class RecursoDAO {
     public boolean eliminar(int id) throws SQLException {
         String sql = "DELETE FROM RECURSOS WHERE IDRecursos = ?";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             
             pst.setInt(1, id);
@@ -126,7 +126,7 @@ public class RecursoDAO {
     public int contarPorEstado(String estado) throws SQLException {
         String sql = "SELECT COUNT(*) as total FROM RECURSOS WHERE Estado = ?";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             
             pst.setString(1, estado);

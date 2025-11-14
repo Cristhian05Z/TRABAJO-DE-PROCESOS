@@ -1,9 +1,8 @@
 package vista;
 
 import javax.swing.*;
-
 import modelo.Usuario;
-
+import database.conexion;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
@@ -90,7 +89,7 @@ public class login extends JFrame {
         String username = txtUsername.getText();
         String password = new String(txtPassword.getPassword());
         
-        try (Connection conn = DatabaseConnection.getConnection()) {
+        try (Connection conn = conexion.getConnection()) {
             String sql = "SELECT * FROM usuarios WHERE username = ? AND password = ?";
             PreparedStatement pst = conn.prepareStatement(sql);
             pst.setString(1, username);
@@ -109,7 +108,7 @@ public class login extends JFrame {
                 dispose();
                 
                 // Abrir la interfaz correspondiente según el rol
-                switch (user.getTipodeusuario().toLowerCase()) {
+                switch (user.getTipoDeUsuario().toLowerCase()) {
                     case "admin":
                         new admin(user).setVisible(true);
                         break;

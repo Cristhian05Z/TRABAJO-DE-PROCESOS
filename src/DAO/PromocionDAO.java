@@ -4,14 +4,14 @@ package DAO;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-
+import database.conexion;
 import modelo.Promocion;
 
 
 public class PromocionDAO {
         public Promocion obtenerPorId(int id) throws SQLException {
         String sql = "SELECT * FROM PROMOCION WHERE IDPromocion = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setInt(1, id);
             ResultSet rs = pst.executeQuery();
@@ -28,7 +28,7 @@ public class PromocionDAO {
         List<Promocion> promociones = new ArrayList<>();
         String sql = "SELECT * FROM PROMOCION ORDER BY PorcentajeDescuento DESC";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             
@@ -43,7 +43,7 @@ public class PromocionDAO {
     public int insertar(Promocion promocion) throws SQLException {
         String sql = "INSERT INTO PROMOCION (PorcentajeDescuento, Condiciones) VALUES (?, ?)";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
             pst.setDouble(1, promocion.getPorcentajeDescuento());
@@ -66,12 +66,12 @@ public class PromocionDAO {
         String sql = "UPDATE PROMOCION SET PorcentajeDescuento = ?, Condiciones = ? " +
                      "WHERE IDPromocion = ?";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             
             pst.setDouble(1, promocion.getPorcentajeDescuento());
             pst.setString(2, promocion.getCondiciones());
-            pst.setInt(3, promocion.getIdPromocion());
+            pst.setInt(3, promocion.getIDPromocion());
             
             return pst.executeUpdate() > 0;
         }
@@ -81,7 +81,7 @@ public class PromocionDAO {
     public boolean eliminar(int id) throws SQLException {
         String sql = "DELETE FROM PROMOCION WHERE IDPromocion = ?";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             
             pst.setInt(1, id);
@@ -92,7 +92,7 @@ public class PromocionDAO {
     // Mapear ResultSet a Promocion
     private Promocion mapearPromocion(ResultSet rs) throws SQLException {
         Promocion promocion = new Promocion();
-        promocion.setIdPromocion(rs.getInt("IDPromocion"));
+        promocion.setIDPromocion(rs.getInt("IDPromocion"));
         promocion.setPorcentajeDescuento(rs.getDouble("PorcentajeDescuento"));
         promocion.setCondiciones(rs.getString("Condiciones"));
         return promocion;

@@ -2,14 +2,14 @@ package DAO;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-
+import database.conexion;
 import modelo.DetalleAlquiler;
 
 public class DetalleAlquilerDAO {
     // Obtener detalle por ID
     public DetalleAlquiler obtenerPorId(int id) throws SQLException {
         String sql = "SELECT * FROM DETALLEALQUILER WHERE IDDetalleAlquiler = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setInt(1, id);
             ResultSet rs = pst.executeQuery();
@@ -26,7 +26,7 @@ public class DetalleAlquilerDAO {
         List<DetalleAlquiler> detalles = new ArrayList<>();
         String sql = "SELECT * FROM DETALLEALQUILER WHERE IDAlquiler = ?";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setInt(1, idAlquiler);
             ResultSet rs = pst.executeQuery();
@@ -57,7 +57,7 @@ public class DetalleAlquilerDAO {
         String sql = "INSERT INTO DETALLEALQUILER (IDRecurso, IDTurista, IDAlquiler, IDPromocion) " +
                      "VALUES (?, ?, ?, ?)";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
             pst.setInt(1, detalle.getIDRecurso());
@@ -87,7 +87,7 @@ public class DetalleAlquilerDAO {
         String sql = "UPDATE DETALLEALQUILER SET IDRecurso = ?, IDTurista = ?, " +
                      "IDPromocion = ? WHERE IDDetalleAlquiler = ?";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             
             pst.setInt(1, detalle.getIDRecurso());
@@ -109,7 +109,7 @@ public class DetalleAlquilerDAO {
     public boolean eliminar(int id) throws SQLException {
         String sql = "DELETE FROM DETALLEALQUILER WHERE IDDetalleAlquiler = ?";
         
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = conexion.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             
             pst.setInt(1, id);
