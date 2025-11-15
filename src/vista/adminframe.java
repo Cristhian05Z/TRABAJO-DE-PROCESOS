@@ -8,18 +8,20 @@ import java.awt.*;
 import java.sql.*;
 
 
-public class admin extends JFrame{
+public class adminframe extends JFrame{
 
     private Usuario currentUser;
-    private JTable tableProducts;
-    private DefaultTableModel modelProducts;
-    private JTable tableUsers;
-    private DefaultTableModel modelUsers;
-    private JTable tableSales;
-    private DefaultTableModel modelSales;
+    private JTable tablaRecursos;
+    private DefaultTableModel modelRecursos;
+    private JTable tablaUsuarios;
+    private DefaultTableModel modelUsuaraios;
+    private JTable tablaTurista;
+    private DefaultTableModel modelTuristas;
+    private JTable tablaAlquileres;
+    private DefaultTableModel modelAlquileres;
     private JTabbedPane tabbedPane;
     
-    public admin(Usuario user) {
+    public adminframe(Usuario user) {
         this.currentUser = user;
         
         setTitle("Panel Administrador - " + user.getNombre());
@@ -47,10 +49,11 @@ public class admin extends JFrame{
         
         // Tabs
         tabbedPane = new JTabbedPane();
-        tabbedPane.addTab("📦 Productos", createProductsPanel());
-        tabbedPane.addTab("👥 Usuarios", createUsersPanel());
-        tabbedPane.addTab("💰 Ventas", createSalesPanel());
-        tabbedPane.addTab("📊 Reportes", createReportsPanel());
+        tabbedPane.addTab("🏖️ Recursos", createRecursosPanel());
+        tabbedPane.addTab("👥 Usuarios", createUsuariosPanel());
+        tabbedPane.addTab("🧳 Turistas", createTuristasPanel());
+        tabbedPane.addTab("📋 Alquileres", createAlquileresPanel());
+        tabbedPane.addTab("🎁 Promociones", createPromocionesPanel());
         
         add(topPanel, BorderLayout.NORTH);
         add(tabbedPane, BorderLayout.CENTER);
@@ -58,25 +61,26 @@ public class admin extends JFrame{
         loadData();
     }
     
-    private JPanel createProductsPanel() {
+    private JPanel createRecursosPanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
         // Tabla
-        modelProducts = new DefaultTableModel(
-            new String[]{"ID", "Nombre", "Precio", "Stock", "Categoría"}, 0
+        modelRecursos = new DefaultTableModel(
+            new String[]{"ID", "Recurso", "Descripción", "Tarifa/Hora", "Estado"}, 0
         ) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
-        tableProducts = new JTable(modelProducts);
-        JScrollPane scrollPane = new JScrollPane(tableProducts);
+        
+        tablaRecursos.setRowHeight(30);
+        JScrollPane scrollPane = new JScrollPane(tablaRecursos);
         
         // Botones
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton btnAdd = new JButton("Agregar");
+        JButton btnAdd = new JButton("Agregar Recurso");
         JButton btnEdit = new JButton("Editar");
         JButton btnDelete = new JButton("Eliminar");
         JButton btnRefresh = new JButton("Actualizar");
@@ -104,11 +108,11 @@ public class admin extends JFrame{
         return panel;
     }
     
-    private JPanel createUsersPanel() {
+    private JPanel createUsuariosPanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        modelUsers = new DefaultTableModel(
+        modelUsuaraios = new DefaultTableModel(
             new String[]{"ID", "Usuario", "Nombre", "Rol"}, 0
         ) {
             @Override
@@ -116,8 +120,8 @@ public class admin extends JFrame{
                 return false;
             }
         };
-        tableUsers = new JTable(modelUsers);
-        JScrollPane scrollPane = new JScrollPane(tableUsers);
+        tablaUsuarios = new JTable(modelUsuaraios);
+        JScrollPane scrollPane = new JScrollPane(tablaUsuarios);
         
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton btnAdd = new JButton("Agregar Usuario");
@@ -143,11 +147,11 @@ public class admin extends JFrame{
         return panel;
     }
     
-    private JPanel createSalesPanel() {
+    private JPanel createAlquileresPanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        modelSales = new DefaultTableModel(
+        modelAlquileres = new DefaultTableModel(
             new String[]{"ID", "Cliente", "Fecha", "Total", "Estado"}, 0
         ) {
             @Override
@@ -155,8 +159,8 @@ public class admin extends JFrame{
                 return false;
             }
         };
-        tableSales = new JTable(modelSales);
-        JScrollPane scrollPane = new JScrollPane(tableSales);
+        tablaAlquileres = new JTable(modelAlquileres);
+        JScrollPane scrollPane = new JScrollPane(tablaAlquileres);
         
         panel.add(scrollPane, BorderLayout.CENTER);
         
@@ -168,7 +172,7 @@ public class admin extends JFrame{
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         
         // Tarjetas de estadísticas
-        panel.add(createStatCard("Total Productos", "0", new Color(52, 152, 219)));
+        panel.add(createStatCard("Total Recursos", "0", new Color(52, 152, 219)));
         panel.add(createStatCard("Total Usuarios", "0", new Color(46, 204, 113)));
         panel.add(createStatCard("Ventas Hoy", "$0", new Color(155, 89, 182)));
         panel.add(createStatCard("Ingresos Totales", "$0", new Color(241, 196, 15)));
@@ -202,14 +206,14 @@ public class admin extends JFrame{
     }
     
     private void loadProducts() {
-        modelProducts.setRowCount(0);
+        modelRecursos.setRowCount(0);
         try (Connection conn = conexion.getConnection()) {
-            String sql = "SELECT * FROM productos";
+            String sql = "SELECT * FROM RECURSOS";
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
             
             while (rs.next()) {
-                modelProducts.addRow(new Object[]{
+                modelRecursos.addRow(new Object[]{
                     rs.getInt("id"),
                     rs.getString("nombre"),
                     rs.getDouble("precio"),
@@ -223,14 +227,14 @@ public class admin extends JFrame{
     }
     
     private void loadUsers() {
-        modelUsers.setRowCount(0);
+        modelUsuaraios.setRowCount(0);
         try (Connection conn = conexion.getConnection()) {
             String sql = "SELECT id, username, nombre, role FROM usuarios";
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
             
             while (rs.next()) {
-                modelUsers.addRow(new Object[]{
+                modelUsuaraios.addRow(new Object[]{
                     rs.getInt("id"),
                     rs.getString("username"),
                     rs.getString("nombre"),
@@ -243,7 +247,7 @@ public class admin extends JFrame{
     }
     
     private void loadSales() {
-        modelSales.setRowCount(0);
+        modelAlquileres.setRowCount(0);
         try (Connection conn = conexion.getConnection()) {
             String sql = "SELECT r.id, u.nombre, r.fecha, r.total, r.estado " +
                         "FROM rentas r JOIN usuarios u ON r.usuario_id = u.id";
@@ -251,7 +255,7 @@ public class admin extends JFrame{
             ResultSet rs = stmt.executeQuery(sql);
             
             while (rs.next()) {
-                modelSales.addRow(new Object[]{
+                modelAlquileres.addRow(new Object[]{
                     rs.getInt("id"),
                     rs.getString("nombre"),
                     rs.getString("fecha"),
@@ -280,7 +284,7 @@ public class admin extends JFrame{
         int option = JOptionPane.showConfirmDialog(this, message, "Agregar Producto", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
             try (Connection conn = conexion.getConnection()) {
-                String sql = "INSERT INTO productos (nombre, precio, stock, categoria) VALUES (?, ?, ?, ?)";
+                String sql = "INSERT INTO RECURSOS (nombre, precio, stock, categoria) VALUES (?, ?, ?, ?)";
                 PreparedStatement pst = conn.prepareStatement(sql);
                 pst.setString(1, txtNombre.getText());
                 pst.setDouble(2, Double.parseDouble(txtPrecio.getText()));
@@ -297,17 +301,17 @@ public class admin extends JFrame{
     }
     
     private void editProduct() {
-        int selectedRow = tableProducts.getSelectedRow();
+        int selectedRow = tablaRecursos.getSelectedRow();
         if (selectedRow == -1) {
             JOptionPane.showMessageDialog(this, "Selecciona un producto");
             return;
         }
         
-        int id = (int) modelProducts.getValueAt(selectedRow, 0);
-        JTextField txtNombre = new JTextField(modelProducts.getValueAt(selectedRow, 1).toString());
-        JTextField txtPrecio = new JTextField(modelProducts.getValueAt(selectedRow, 2).toString());
-        JTextField txtStock = new JTextField(modelProducts.getValueAt(selectedRow, 3).toString());
-        JTextField txtCategoria = new JTextField(modelProducts.getValueAt(selectedRow, 4).toString());
+        int id = (int) modelRecursos.getValueAt(selectedRow, 0);
+        JTextField txtNombre = new JTextField(modelRecursos.getValueAt(selectedRow, 1).toString());
+        JTextField txtPrecio = new JTextField(modelRecursos.getValueAt(selectedRow, 2).toString());
+        JTextField txtStock = new JTextField(modelRecursos.getValueAt(selectedRow, 3).toString());
+        JTextField txtCategoria = new JTextField(modelRecursos.getValueAt(selectedRow, 4).toString());
         
         Object[] message = {
             "Nombre:", txtNombre,
@@ -337,13 +341,13 @@ public class admin extends JFrame{
     }
     
     private void deleteProduct() {
-        int selectedRow = tableProducts.getSelectedRow();
+        int selectedRow = tablaRecursos.getSelectedRow();
         if (selectedRow == -1) {
             JOptionPane.showMessageDialog(this, "Selecciona un producto");
             return;
         }
         
-        int id = (int) modelProducts.getValueAt(selectedRow, 0);
+        int id = (int) modelRecursos.getValueAt(selectedRow, 0);
         int confirm = JOptionPane.showConfirmDialog(this, 
             "¿Eliminar este producto?", 
             "Confirmar", 

@@ -88,9 +88,13 @@ public class login extends JFrame {
     }
     
     private void loginuser() {
-
     String username = txtUsername.getText().trim();
     String password = new String(txtPassword.getPassword()).trim();
+
+    System.out.println("====== DEBUG LOGIN ======");
+    System.out.println("Usuario ingresado: [" + username + "]");
+    System.out.println("Contraseña ingresada: [" + password + "]");
+    System.out.println("Longitud contraseña: " + password.length());
 
     if (username.isEmpty() || password.isEmpty()) {
         JOptionPane.showMessageDialog(this, "Complete todos los campos.");
@@ -98,60 +102,71 @@ public class login extends JFrame {
     }
 
     try (Connection conn = conexion.getConnection()) {
-            String sql = "SELECT * FROM USUARIO WHERE (IDUsuario = ? OR UPPER(Nombre) = UPPER(?)) AND Contraseña = ?";
-            PreparedStatement pst = conn.prepareStatement(sql);
-            pst.setString(1, username);   
-            pst.setString(3, password);
-
+        String sql = "SELECT * FROM USUARIO WHERE IDUsuario = ? OR UPPER(Nombre) = UPPER(?)";
+        PreparedStatement pst = conn.prepareStatement(sql);
+        pst.setString(1, username);
+        pst.setString(2, username);
 
         ResultSet rs = pst.executeQuery();
 
         if (rs.next()) {
-                String passwordHash = rs.getString("Contrasena");
+            String idUsuario = rs.getString("IDUsuario");
+            String nombre = rs.getString("Nombre");
+            String passwordBD = rs.getString("Contraseña");
+            
+            System.out.println("\n--- USUARIO ENCONTRADO ---");
+            System.out.println("IDUsuario BD: [" + idUsuario + "]");
+            System.out.println("Nombre BD: [" + nombre + "]");
+            System.out.println("Contraseña BD: [" + passwordBD + "]");
+            System.out.println("Longitud contraseña BD: " + passwordBD.length());
+            
+            // Comparación byte por byte
+            System.out.println("\n--- COMPARACIÓN ---");
+            System.out.println("¿Son iguales? " + password.equals(passwordBD));
+            System.out.println("¿Iguales ignorando mayúsculas? " + password.equalsIgnoreCase(passwordBD));
+            
+            // Mostrar en hexadecimal
+            System.out.println("\nIngresada en hex: " + bytesToHex(password.getBytes()));
+            System.out.println("BD en hex: " + bytesToHex(passwordBD.getBytes()));
+            
+            // COMPARACIÓN SIMPLE
+            if (password.equals(passwordBD)) {
+                System.out.println("\n✅ LOGIN EXITOSO!");
                 
-                // OPCIÓN 1: Si las contraseñas están encriptadas
-                String passwordIngresadaHash = passwordh.encriptar(password);
+                Usuario user = new Usuario(
+                    rs.getString("IDUsuario"),
+                    rs.getString("TipoDeUsuario"),
+                    rs.getString("Nombre"),
+                    rs.getString("Contraseña")
+                );
                 
-                // OPCIÓN 2: Si quieres comparar en texto plano (temporal)
-                // boolean passwordCorrecta = password.equals(passwordHash);
+                JOptionPane.showMessageDialog(this, 
+                    "¡Bienvenido " + nombre + "!",
+                    "Login exitoso",
+                    JOptionPane.INFORMATION_MESSAGE);
                 
-                // Comparar hash
-                boolean passwordCorrecta = passwordIngresadaHash.equals(passwordHash);
+                dispose();
                 
-                if (passwordCorrecta) {
-                    Usuario user = new Usuario(
-                        rs.getString("IDUsuario"),
-                        rs.getString("TipoDeUsuario"),
-                        rs.getString("Nombre"),
-                        rs.getString("Contrasena")
-                    );
-                    
-                    dispose();
-                    
-                    // Abrir interfaz según el rol
-                    if (user.esAdmin()) {
-                        new admin(user).setVisible(true);
-                    } else if (user.esEmpleado()) {
-                        new vendedor(user).setVisible(true);
-                    } else if (user.esTurista()) {
-                        new turista(user).setVisible(true);
-                    } else {
-                        JOptionPane.showMessageDialog(this, 
-                            "Tipo de usuario no reconocido: " + user.getTipoDeUsuario(), 
-                            "Error", 
-                            JOptionPane.ERROR_MESSAGE);
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(this, 
-                        "Contraseña incorrecta", 
-                        "Error", 
-                        JOptionPane.ERROR_MESSAGE);}
-}
-                
-else {
-
+                if (user.esAdmin()) {
+                    new adminframe(user).setVisible(true);
+                } else if (user.esEmpleado()) {
+                    new vendedorframe(user).setVisible(true);
+                } else if (user.esTurista()) {
+                    new turistaframe(user).setVisible(true);
+                }
+            } else {
+                System.out.println("\n❌ CONTRASEÑA INCORRECTA");
+                JOptionPane.showMessageDialog(this, 
+                    "Contraseña incorrecta\n\n" +
+                    "Ingresada: " + password + "\n" +
+                    "En BD: " + passwordBD,
+                    "Error", 
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            System.out.println("\n❌ USUARIO NO ENCONTRADO");
             JOptionPane.showMessageDialog(this,
-                "Usuario o contraseña incorrectos.",
+                "Usuario no encontrado: " + username,
                 "Error", JOptionPane.ERROR_MESSAGE);
         }
 
@@ -161,6 +176,15 @@ else {
             "Error al conectar: " + e.getMessage(),
             "Error", JOptionPane.ERROR_MESSAGE);
     }
+    
+    System.out.println("========================\n");
+}
+private String bytesToHex(byte[] bytes) {
+    StringBuilder sb = new StringBuilder();
+    for (byte b : bytes) {
+        sb.append(String.format("%02X ", b));
+    }
+    return sb.toString();
 }
 
     

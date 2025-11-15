@@ -1,38 +1,41 @@
 package vista;
+
+
 import javax.swing.*;
 import javax.swing.table.*;
-
 import database.conexion;
 import modelo.Usuario;
-
 import java.awt.*;
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
+import java.sql.Date;
 
-public class vendedor extends JFrame {
+public class vendedorframe extends JFrame {
     private Usuario currentUser;
-    private JTable tableProducts;
-    private DefaultTableModel modelProducts;
+    private JTable tablaRecursos;
+    private DefaultTableModel modelRecursos ;
     private JTable tableCart;
     private DefaultTableModel modelCart;
     private JLabel lblTotal;
     private ArrayList<CartItem> cart = new ArrayList<>();
     
     class CartItem {
-        int productId;
+        int idRecurso;
         String nombre;
-        double precio;
-        int cantidad;
+        double tarifaPorHora;
+        int horas;
         
-        CartItem(int id, String nombre, double precio, int cantidad) {
-            this.productId = id;
+        CartItem(int id, String nombre, double tarifa, int horas) {
+            this.idRecurso = id;
             this.nombre = nombre;
-            this.precio = precio;
-            this.cantidad = cantidad;
+            this.tarifaPorHora = tarifa;
+            this.horas = horas;
         }
     }
     
-    public vendedor(Usuario user) {
+    public vendedorframe(Usuario user) {
         this.currentUser = user;
         
         setTitle("Panel Vendedor - " + user.getNombre());
@@ -64,18 +67,18 @@ public class vendedor extends JFrame {
         
         // Panel izquierdo - Productos
         JPanel leftPanel = new JPanel(new BorderLayout(10, 10));
-        leftPanel.setBorder(BorderFactory.createTitledBorder("Productos Disponibles"));
+        leftPanel.setBorder(BorderFactory.createTitledBorder("Recursos Disponibles"));
         
-        modelProducts = new DefaultTableModel(
-            new String[]{"ID", "Nombre", "Precio", "Stock", "Categoría"}, 0
+        modelRecursos = new DefaultTableModel(
+            new String[]{"ID", "Recurso", "Tarifa/Hora", "Estado"}, 0
         ) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
-        tableProducts = new JTable(modelProducts);
-        JScrollPane scrollProducts = new JScrollPane(tableProducts);
+        tablaRecursos = new JTable(modelRecursos);
+        JScrollPane scrollProducts = new JScrollPane(tablaRecursos);
         
         JPanel btnPanelLeft = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton btnAddToCart = new JButton("Agregar al Carrito");
@@ -97,7 +100,7 @@ public class vendedor extends JFrame {
         rightPanel.setBorder(BorderFactory.createTitledBorder("Carrito de Compras"));
         
         modelCart = new DefaultTableModel(
-            new String[]{"Producto", "Precio", "Cantidad", "Subtotal"}, 0
+            new String[]{"Recurso", "Tarifa/Hora", "Horas", "Subtotal"}, 0
         ) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -151,18 +154,17 @@ public class vendedor extends JFrame {
     }
     
     private void loadProducts() {
-        modelProducts.setRowCount(0);
+        modelRecursos.setRowCount(0);
         try (Connection conn = conexion.getConnection()) {
-            String sql = "SELECT * FROM productos WHERE stock > 0";
+            String sql = "SELECT * FROM RECURSOS WHERE Estado = 'DISPONIBLE'";
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
             
             while (rs.next()) {
-                modelProducts.addRow(new Object[]{
-                    rs.getInt("id"),
-                    rs.getString("nombre"),
-                    String.format("$%.2f", rs.getDouble("precio")),
-                    rs.getInt("stock"),
+                modelRecursos.addRow(new Object[]{
+                    rs.getString("IDRecurso"),
+                    rs.getString("Recurso"),
+                    String.format("$%.2f", rs.getDouble("Tarifa/Hora")),
                     rs.getString("categoria")
                 });
             }
@@ -172,34 +174,35 @@ public class vendedor extends JFrame {
     }
     
     private void addToCart() {
-        int selectedRow = tableProducts.getSelectedRow();
+        int selectedRow = tablaRecursos.getSelectedRow();
         if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Selecciona un producto");
+            JOptionPane.showMessageDialog(this, "Selecciona un Recurso");
             return;
         }
         
-        int id = (int) modelProducts.getValueAt(selectedRow, 0);
-        String nombre = (String) modelProducts.getValueAt(selectedRow, 1);
-        String precioStr = (String) modelProducts.getValueAt(selectedRow, 2);
-        double precio = Double.parseDouble(precioStr.replace("$", ""));
+        int id = (int) modelRecursos.getValueAt(selectedRow, 0);
+        String nombre = (String) modelRecursos.getValueAt(selectedRow, 1);
+        String tarifaStr = (String) modelRecursos.getValueAt(selectedRow, 2);
+        double tarifa = Double.parseDouble(tarifaStr.replace("S/", ""));
         
-        String cantidadStr = JOptionPane.showInputDialog(this, "Cantidad:", "1");
-        if (cantidadStr == null || cantidadStr.isEmpty()) return;
+        String horasStr  = JOptionPane.showInputDialog(this, "Cuantas Horas:", "1");
+        if (horasStr  == null || horasStr .isEmpty()) return;
         
-        int cantidad = Integer.parseInt(cantidadStr);
+        int horas = Integer.parseInt(horasStr );
+        
         
         // Verificar si ya está en el carrito
         boolean found = false;
         for (CartItem item : cart) {
-            if (item.productId == id) {
-                item.cantidad += cantidad;
+            if (item.idRecurso == id) {
+                item.horas += horas;
                 found = true;
                 break;
             }
         }
         
         if (!found) {
-            cart.add(new CartItem(id, nombre, precio, cantidad));
+            cart.add(new CartItem(id, nombre, tarifa, horas));
         }
         
         updateCartTable();
@@ -226,12 +229,12 @@ public class vendedor extends JFrame {
         double total = 0;
         
         for (CartItem item : cart) {
-            double subtotal = item.precio * item.cantidad;
+            double subtotal = item.tarifaPorHora * item.horas;
             total += subtotal;
             modelCart.addRow(new Object[]{
                 item.nombre,
-                String.format("$%.2f", item.precio),
-                item.cantidad,
+                String.format("$%.2f", item.tarifaPorHora),
+                item.horas + "hrs",
                 String.format("$%.2f", subtotal)
             });
         }
@@ -246,59 +249,79 @@ public class vendedor extends JFrame {
         }
         
         // Solicitar ID del cliente
-        String clienteIdStr = JOptionPane.showInputDialog(this, "ID del Cliente (Turista):");
-        if (clienteIdStr == null || clienteIdStr.isEmpty()) return;
-        
-        int clienteId = Integer.parseInt(clienteIdStr);
-        double total = 0;
-        for (CartItem item : cart) {
-            total += item.precio * item.cantidad;
-        }
+        String dni = JOptionPane.showInputDialog(this, "DNI del Turista:");
+        if (dni == null || dni.isEmpty()) return;
         
         try (Connection conn = conexion.getConnection()) {
             conn.setAutoCommit(false);
             
-            // Insertar la renta principal
-            String sql = "INSERT INTO rentas (usuario_id, vendedor_id, fecha, total, estado) VALUES (?, ?, CURDATE(), ?, 'activo')";
-            PreparedStatement pst = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            pst.setInt(1, clienteId);
-            pst.setString(2, currentUser.getIDUsuario());
-            pst.setDouble(3, total);
-            pst.executeUpdate();
+            // Buscar turista por DNI
+            String sqlTurista = "SELECT IDTurista FROM TURISTAA WHERE DNI = ?";
+            PreparedStatement pstTurista = conn.prepareStatement(sqlTurista);
+            pstTurista.setString(1, dni);
+            ResultSet rsTurista = pstTurista.executeQuery();
             
-            ResultSet rs = pst.getGeneratedKeys();
-            int rentaId = 0;
-            if (rs.next()) {
-                rentaId = rs.getInt(1);
+            if (!rsTurista.next()) {
+                JOptionPane.showMessageDialog(this, "Turista no encontrado. Debe estar registrado primero.");
+                conn.rollback();
+                return;
             }
             
-            // Insertar detalles y actualizar stock
+            int idTurista = rsTurista.getInt("IDTurista");
+            
+            // Obtener duración total (promedio de horas)
+            int duracionTotal = 0;
             for (CartItem item : cart) {
-                String sqlDetail = "INSERT INTO renta_detalles (renta_id, producto_id, cantidad, precio_unitario) VALUES (?, ?, ?, ?)";
-                PreparedStatement pstDetail = conn.prepareStatement(sqlDetail);
-                pstDetail.setInt(1, rentaId);
-                pstDetail.setInt(2, item.productId);
-                pstDetail.setInt(3, item.cantidad);
-                pstDetail.setDouble(4, item.precio);
-                pstDetail.executeUpdate();
+                duracionTotal += item.horas;
+            }
+            int duracionPromedio = duracionTotal / cart.size();
+            
+            // Insertar el alquiler
+            String sqlAlquiler = "INSERT INTO Alquiler (FechaDeInicio, HoraDeInicio, Duracion) VALUES (?, ?, ?)";
+            PreparedStatement pstAlquiler = conn.prepareStatement(sqlAlquiler, Statement.RETURN_GENERATED_KEYS);
+            pstAlquiler.setDate(1, Date.valueOf(LocalDate.now()));
+            pstAlquiler.setTime(2, Time.valueOf(LocalTime.now()));
+            pstAlquiler.setInt(3, duracionPromedio);
+            pstAlquiler.executeUpdate();
+            
+            ResultSet rsAlquiler = pstAlquiler.getGeneratedKeys();
+            int idAlquiler = 0;
+            if (rsAlquiler.next()) {
+                idAlquiler = rsAlquiler.getInt(1);
+            }
+            
+            // Insertar detalles y actualizar estado de recursos
+            for (CartItem item : cart) {
+                // Insertar detalle
+                String sqlDetalle = "INSERT INTO DETALLEALQUILER (IDRecurso, IDTurista, IDAlquiler, IDPromocion) VALUES (?, ?, ?, NULL)";
+                PreparedStatement pstDetalle = conn.prepareStatement(sqlDetalle);
+                pstDetalle.setInt(1, item.idRecurso);
+                pstDetalle.setInt(2, idTurista);
+                pstDetalle.setInt(3, idAlquiler);
+                pstDetalle.executeUpdate();
                 
-                // Actualizar stock
-                String sqlStock = "UPDATE productos SET stock = stock - ? WHERE id = ?";
-                PreparedStatement pstStock = conn.prepareStatement(sqlStock);
-                pstStock.setInt(1, item.cantidad);
-                pstStock.setInt(2, item.productId);
-                pstStock.executeUpdate();
+                // Actualizar estado del recurso
+                String sqlEstado = "UPDATE RECURSOS SET Estado = 'alquilado' WHERE IDRecursos = ?";
+                PreparedStatement pstEstado = conn.prepareStatement(sqlEstado);
+                pstEstado.setInt(1, item.idRecurso);
+                pstEstado.executeUpdate();
             }
             
             conn.commit();
             
+            double total = 0;
+            for (CartItem item : cart) {
+                total += item.tarifaPorHora * item.horas;
+            }
+            
             JOptionPane.showMessageDialog(this, 
-                String.format("Alquiler procesado exitosamente\nTotal: $%.2f\nRenta ID: %d", total, rentaId),
+                String.format("Alquiler procesado exitosamente\nTotal: S/ %.2f\nAlquiler ID: %d", total, idAlquiler),
                 "Éxito",
                 JOptionPane.INFORMATION_MESSAGE);
             
             clearCart();
-            loadProducts();
+
+    
             
         } catch (SQLException e) {
             e.printStackTrace();
