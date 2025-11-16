@@ -8,7 +8,7 @@ import java.awt.*;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.ArrayList;
 
 
 
@@ -23,6 +23,7 @@ public class turistaframe extends JFrame {
     private JLabel lblTotal;
     private ArrayList<CartItem> cart = new ArrayList<>();
     private JTabbedPane tabbedPane;
+    private int idTurista = -1; 
     
     class CartItem {
         int idRecurso;
@@ -322,7 +323,7 @@ public class turistaframe extends JFrame {
             return;
         }
         
-        if (IDTurista == -1) {
+        if (idTurista == -1) {
             JOptionPane.showMessageDialog(this, "No se pudo identificar al turista");
             return;
         }
@@ -363,14 +364,14 @@ public class turistaframe extends JFrame {
                 String sqlDetalle = "INSERT INTO DETALLEALQUILER (IDRecurso, IDTurista, IDAlquiler, IDPromocion) VALUES (?, ?, ?, NULL)";
                 PreparedStatement pstDetalle = conn.prepareStatement(sqlDetalle);
                 pstDetalle.setInt(1, item.idRecurso);
-                pstDetalle.setInt(2, IDTurista);
+                pstDetalle.setInt(2, idTurista);
                 pstDetalle.setInt(3, idAlquiler);
                 pstDetalle.executeUpdate();
             
             conn.commit();
             
             JOptionPane.showMessageDialog(this,
-                String.format("¡Alquiler confirmado!\nTotal: $%.2f\nID: %d", Total, idAlquiler),
+                String.format("¡Alquiler confirmado!\nTotal: $%.2f\nID: %d", duracionTotal, idAlquiler),
                 "Éxito",
                 JOptionPane.INFORMATION_MESSAGE);
             
