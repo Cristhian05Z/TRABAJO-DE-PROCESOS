@@ -1,5 +1,4 @@
 package vista;
-
 import javax.swing.*;
 import javax.swing.table.*;
 import modelo.Usuario;
@@ -115,13 +114,13 @@ public class adminframe extends JFrame {
     private void loadRecursos() {
         modelRecursos.setRowCount(0);
         try (Connection conn = conexion.getConnection()) {
-            String sql = "SELECT * FROM RECURSOS ORDER BY Recurso";
+            String sql = "SELECT * FROM RECURSOS ORDER BY IDRecurso";  // ← Ordenar por ID
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
             
             while (rs.next()) {
                 modelRecursos.addRow(new Object[]{
-                    rs.getInt("IDRecursos"),
+                    rs.getString("IDRecurso"),  // ← VARCHAR: "R001"
                     rs.getString("Recurso"),
                     rs.getString("Descripcion"),
                     String.format("S/ %.2f", rs.getDouble("TarifaPorHora")),
@@ -136,13 +135,17 @@ public class adminframe extends JFrame {
     
     private void addRecurso() {
         JTextField txtRecurso = new JTextField();
-        JTextField txtDescripcion = new JTextField();
+        JTextArea txtDescripcion = new JTextArea(3, 20);
+        txtDescripcion.setLineWrap(true);
+        txtDescripcion.setWrapStyleWord(true);
+        JScrollPane scrollDesc = new JScrollPane(txtDescripcion);
+        
         JTextField txtTarifa = new JTextField();
         JComboBox<String> cmbEstado = new JComboBox<>(new String[]{"disponible", "alquilado", "mantenimiento"});
         
         Object[] message = {
             "Recurso:", txtRecurso,
-            "Descripción:", txtDescripcion,
+            "Descripción:", scrollDesc,
             "Tarifa por Hora:", txtTarifa,
             "Estado:", cmbEstado
         };
@@ -150,20 +153,72 @@ public class adminframe extends JFrame {
         int option = JOptionPane.showConfirmDialog(this, message, "Agregar Recurso", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
             try (Connection conn = conexion.getConnection()) {
-                String sql = "INSERT INTO RECURSOS (Recurso, Descripcion, TarifaPorHora, Estado) VALUES (?, ?, ?, ?)";
+                // Validar campos vacíos
+                if (txtRecurso.getText().trim().isEmpty() || txtDescripcion.getText().trim().isEmpty() || txtTarifa.getText().trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Por favor completa todos los campos");
+                    return;
+                }
+                
+                // Limitar la descripción a 255 caracteres
+                String descripcion = txtDescripcion.getText().trim();
+                if (descripcion.length() > 255) {
+                    int confirm = JOptionPane.showConfirmDialog(this,
+                        "La descripción es muy larga (" + descripcion.length() + " caracteres).\n" +
+                        "Se recortará a 255 caracteres. ¿Continuar?",
+                        "Advertencia",
+                        JOptionPane.YES_NO_OPTION);
+                    
+                    if (confirm != JOptionPane.YES_OPTION) {
+                        return;
+                    }
+                    descripcion = descripcion.substring(0, 255);
+                }
+                
+                // ✅ GENERAR ID ALFANUMÉRICO TIPO "R001", "R002", etc.
+                String nuevoID = generarNuevoIDRecurso(conn);
+                
+                // Insertar con ID alfanumérico
+                String sql = "INSERT INTO RECURSOS (IDRecurso, Recurso, Descripcion, TarifaPorHora, Estado) VALUES (?, ?, ?, ?, ?)";
                 PreparedStatement pst = conn.prepareStatement(sql);
-                pst.setString(1, txtRecurso.getText());
-                pst.setString(2, txtDescripcion.getText());
-                pst.setDouble(3, Double.parseDouble(txtTarifa.getText()));
-                pst.setString(4, cmbEstado.getSelectedItem().toString());
+                pst.setString(1, nuevoID);  // ← VARCHAR: "R001"
+                pst.setString(2, txtRecurso.getText().trim());
+                pst.setString(3, descripcion);
+                pst.setDouble(4, Double.parseDouble(txtTarifa.getText().trim()));
+                pst.setString(5, cmbEstado.getSelectedItem().toString());
                 pst.executeUpdate();
                 
-                JOptionPane.showMessageDialog(this, "Recurso agregado exitosamente");
+                JOptionPane.showMessageDialog(this, "Recurso agregado exitosamente con ID: " + nuevoID);
                 loadRecursos();
-            } catch (SQLException | NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+            } catch (SQLException e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error de BD: " + e.getMessage());
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Error: La tarifa debe ser un número válido");
             }
         }
+    }
+    
+    // ✅ MÉTODO PARA GENERAR ID ALFANUMÉRICO
+    private String generarNuevoIDRecurso(Connection conn) throws SQLException {
+        String prefijo = "R";  // Prefijo para recursos
+        int siguienteNumero = 1;
+        
+        // Obtener el máximo número actual
+        String sql = "SELECT TOP 1 IDRecurso FROM RECURSOS WHERE IDRecurso LIKE ? ORDER BY IDRecurso DESC";
+        PreparedStatement pst = conn.prepareStatement(sql);
+        pst.setString(1, prefijo + "%");
+        ResultSet rs = pst.executeQuery();
+        
+        if (rs.next()) {
+            String ultimoID = rs.getString("IDRecurso");
+            // Extraer el número: "R001" → "001" → 1
+            String numeroStr = ultimoID.substring(prefijo.length());
+            int numero = Integer.parseInt(numeroStr);
+            siguienteNumero = numero + 1;
+        }
+        
+        // Formatear con ceros a la izquierda: 1 → "001"
+        return String.format("%s%03d", prefijo, siguienteNumero);
     }
     
     private void editRecurso() {
@@ -173,9 +228,15 @@ public class adminframe extends JFrame {
             return;
         }
         
-        int id = (int) modelRecursos.getValueAt(selectedRow, 0);
+        String id = modelRecursos.getValueAt(selectedRow, 0).toString();  // ← VARCHAR ahora
         JTextField txtRecurso = new JTextField(modelRecursos.getValueAt(selectedRow, 1).toString());
-        JTextField txtDescripcion = new JTextField(modelRecursos.getValueAt(selectedRow, 2).toString());
+        
+        JTextArea txtDescripcion = new JTextArea(3, 20);
+        txtDescripcion.setText(modelRecursos.getValueAt(selectedRow, 2).toString());
+        txtDescripcion.setLineWrap(true);
+        txtDescripcion.setWrapStyleWord(true);
+        JScrollPane scrollDesc = new JScrollPane(txtDescripcion);
+        
         String tarifaStr = modelRecursos.getValueAt(selectedRow, 3).toString().replace("S/ ", "");
         JTextField txtTarifa = new JTextField(tarifaStr);
         JComboBox<String> cmbEstado = new JComboBox<>(new String[]{"disponible", "alquilado", "mantenimiento"});
@@ -183,7 +244,7 @@ public class adminframe extends JFrame {
         
         Object[] message = {
             "Recurso:", txtRecurso,
-            "Descripción:", txtDescripcion,
+            "Descripción:", scrollDesc,
             "Tarifa por Hora:", txtTarifa,
             "Estado:", cmbEstado
         };
@@ -191,19 +252,35 @@ public class adminframe extends JFrame {
         int option = JOptionPane.showConfirmDialog(this, message, "Editar Recurso", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
             try (Connection conn = conexion.getConnection()) {
-                String sql = "UPDATE RECURSOS SET Recurso=?, Descripcion=?, TarifaPorHora=?, Estado=? WHERE IDRecursos=?";
+                String descripcion = txtDescripcion.getText().trim();
+                if (descripcion.length() > 255) {
+                    int confirm = JOptionPane.showConfirmDialog(this,
+                        "La descripción es muy larga (" + descripcion.length() + " caracteres).\n" +
+                        "Se recortará a 255 caracteres. ¿Continuar?",
+                        "Advertencia",
+                        JOptionPane.YES_NO_OPTION);
+                    
+                    if (confirm != JOptionPane.YES_OPTION) {
+                        return;
+                    }
+                    descripcion = descripcion.substring(0, 255);
+                }
+                
+                String sql = "UPDATE RECURSOS SET Recurso=?, Descripcion=?, TarifaPorHora=?, Estado=? WHERE IDRecurso=?";
                 PreparedStatement pst = conn.prepareStatement(sql);
-                pst.setString(1, txtRecurso.getText());
-                pst.setString(2, txtDescripcion.getText());
-                pst.setDouble(3, Double.parseDouble(txtTarifa.getText()));
+                pst.setString(1, txtRecurso.getText().trim());
+                pst.setString(2, descripcion);
+                pst.setDouble(3, Double.parseDouble(txtTarifa.getText().trim()));
                 pst.setString(4, cmbEstado.getSelectedItem().toString());
-                pst.setInt(5, id);
+                pst.setString(5, id);  // ← VARCHAR ahora
                 pst.executeUpdate();
                 
                 JOptionPane.showMessageDialog(this, "Recurso actualizado");
                 loadRecursos();
-            } catch (SQLException | NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "Error de BD: " + e.getMessage());
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Error: La tarifa debe ser un número válido");
             }
         }
     }
@@ -215,7 +292,7 @@ public class adminframe extends JFrame {
             return;
         }
         
-        int id = (int) modelRecursos.getValueAt(selectedRow, 0);
+        String id = modelRecursos.getValueAt(selectedRow, 0).toString();  // ← VARCHAR ahora
         int confirm = JOptionPane.showConfirmDialog(this, 
             "¿Eliminar este recurso?", 
             "Confirmar", 
@@ -223,9 +300,9 @@ public class adminframe extends JFrame {
             
         if (confirm == JOptionPane.YES_OPTION) {
             try (Connection conn = conexion.getConnection()) {
-                String sql = "DELETE FROM RECURSOS WHERE IDRecursos=?";
+                String sql = "DELETE FROM RECURSOS WHERE IDRecurso=?";
                 PreparedStatement pst = conn.prepareStatement(sql);
-                pst.setInt(1, id);
+                pst.setString(1, id);  // ← VARCHAR ahora
                 pst.executeUpdate();
                 
                 JOptionPane.showMessageDialog(this, "Recurso eliminado");
@@ -315,7 +392,7 @@ public class adminframe extends JFrame {
         int option = JOptionPane.showConfirmDialog(this, message, "Agregar Usuario", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
             try (Connection conn = conexion.getConnection()) {
-                String sql = "INSERT INTO USUARIO (IDUsuario, TipoDeUsuario, Nombre, Contrasena) VALUES (?, ?, ?, ?)";
+                String sql = "INSERT INTO USUARIO (IDUsuario, TipoDeUsuario, Nombre, Contraseña) VALUES (?, ?, ?, ?)";
                 PreparedStatement pst = conn.prepareStatement(sql);
                 pst.setString(1, txtID.getText());
                 pst.setString(2, cmbTipo.getSelectedItem().toString());
@@ -417,7 +494,7 @@ public class adminframe extends JFrame {
             
             while (rs.next()) {
                 modelTuristas.addRow(new Object[]{
-                    rs.getInt("IDTurista"),
+                    rs.getString("IDTurista"),  // ← STRING (era getInt)
                     rs.getString("Nombre"),
                     rs.getString("Apellido"),
                     rs.getString("DNI"),
@@ -428,6 +505,7 @@ public class adminframe extends JFrame {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error al cargar turistas: " + e.getMessage());
         }
     }
     
@@ -451,22 +529,46 @@ public class adminframe extends JFrame {
         int option = JOptionPane.showConfirmDialog(this, message, "Agregar Turista", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
             try (Connection conn = conexion.getConnection()) {
-                String sql = "INSERT INTO TURISTAA (Nombre, Apellido, DNI, Nacionalidad, Telefono, Email) VALUES (?, ?, ?, ?, ?, ?)";
+                // ✅ GENERAR ID ALFANUMÉRICO TIPO "T001", "T002", etc.
+                String nuevoID = generarNuevoIDTurista(conn);
+                
+                String sql = "INSERT INTO TURISTAA (IDTurista, Nombre, Apellido, DNI, Nacionalidad, Telefono, Email) VALUES (?, ?, ?, ?, ?, ?, ?)";
                 PreparedStatement pst = conn.prepareStatement(sql);
-                pst.setString(1, txtNombre.getText());
-                pst.setString(2, txtApellido.getText());
-                pst.setString(3, txtDNI.getText());
-                pst.setString(4, txtNacionalidad.getText());
-                pst.setString(5, txtTelefono.getText());
-                pst.setString(6, txtEmail.getText());
+                pst.setString(1, nuevoID);
+                pst.setString(2, txtNombre.getText());
+                pst.setString(3, txtApellido.getText());
+                pst.setString(4, txtDNI.getText());
+                pst.setString(5, txtNacionalidad.getText());
+                pst.setString(6, txtTelefono.getText());
+                pst.setString(7, txtEmail.getText());
                 pst.executeUpdate();
                 
-                JOptionPane.showMessageDialog(this, "Turista agregado");
+                JOptionPane.showMessageDialog(this, "Turista agregado con ID: " + nuevoID);
                 loadTuristas();
             } catch (SQLException e) {
                 JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
             }
         }
+    }
+    
+    // ✅ MÉTODO PARA GENERAR ID DE TURISTA
+    private String generarNuevoIDTurista(Connection conn) throws SQLException {
+        String prefijo = "T";
+        int siguienteNumero = 1;
+        
+        String sql = "SELECT TOP 1 IDTurista FROM TURISTAA WHERE IDTurista LIKE ? ORDER BY IDTurista DESC";
+        PreparedStatement pst = conn.prepareStatement(sql);
+        pst.setString(1, prefijo + "%");
+        ResultSet rs = pst.executeQuery();
+        
+        if (rs.next()) {
+            String ultimoID = rs.getString("IDTurista");
+            String numeroStr = ultimoID.substring(prefijo.length());
+            int numero = Integer.parseInt(numeroStr);
+            siguienteNumero = numero + 1;
+        }
+        
+        return String.format("%s%03d", prefijo, siguienteNumero);
     }
     
     private void editTurista() {
@@ -476,7 +578,7 @@ public class adminframe extends JFrame {
             return;
         }
         
-        int id = (int) modelTuristas.getValueAt(selectedRow, 0);
+        String id = modelTuristas.getValueAt(selectedRow, 0).toString();  // ← STRING
         JTextField txtNombre = new JTextField(modelTuristas.getValueAt(selectedRow, 1).toString());
         JTextField txtApellido = new JTextField(modelTuristas.getValueAt(selectedRow, 2).toString());
         JTextField txtDNI = new JTextField(modelTuristas.getValueAt(selectedRow, 3).toString());
@@ -504,7 +606,7 @@ public class adminframe extends JFrame {
                 pst.setString(4, txtNacionalidad.getText());
                 pst.setString(5, txtTelefono.getText());
                 pst.setString(6, txtEmail.getText());
-                pst.setInt(7, id);
+                pst.setString(7, id);  // ← STRING
                 pst.executeUpdate();
                 
                 JOptionPane.showMessageDialog(this, "Turista actualizado");
@@ -522,7 +624,7 @@ public class adminframe extends JFrame {
             return;
         }
         
-        int id = (int) modelTuristas.getValueAt(selectedRow, 0);
+        String id = modelTuristas.getValueAt(selectedRow, 0).toString();  // ← STRING
         int confirm = JOptionPane.showConfirmDialog(this, 
             "¿Eliminar este turista?", 
             "Confirmar", 
@@ -532,7 +634,7 @@ public class adminframe extends JFrame {
             try (Connection conn = conexion.getConnection()) {
                 String sql = "DELETE FROM TURISTAA WHERE IDTurista=?";
                 PreparedStatement pst = conn.prepareStatement(sql);
-                pst.setInt(1, id);
+                pst.setString(1, id);  // ← STRING
                 pst.executeUpdate();
                 
                 JOptionPane.showMessageDialog(this, "Turista eliminado");
@@ -585,27 +687,33 @@ public class adminframe extends JFrame {
     private void loadAlquileres() {
         modelAlquileres.setRowCount(0);
         try (Connection conn = conexion.getConnection()) {
-            String sql = "SELECT a.IDAlquiler, a.FechaDeInicio, a.HoraDeInicio, a.Duracion, " +
-                        "SUM(r.TarifaPorHora * a.Duracion) as TotalAprox " +
-                        "FROM Alquiler a " +
-                        "LEFT JOIN DETALLEALQUILER da ON a.IDAlquiler = da.IDAlquiler " +
-                        "LEFT JOIN RECURSOS r ON da.IDRecurso = r.IDRecursos " +
-                        "GROUP BY a.IDAlquiler, a.FechaDeInicio, a.HoraDeInicio, a.Duracion " +
-                        "ORDER BY a.FechaDeInicio DESC, a.HoraDeInicio DESC";
+            // ✅ Simplificado para evitar errores de conversión
+            String sql = "SELECT IDAlquiler, FechaDeInicio, HoraDeInicio, Duracion FROM Alquiler " +
+                        "ORDER BY FechaDeInicio DESC, HoraDeInicio DESC";
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
             
             while (rs.next()) {
+                String duracion;
+                try {
+                    int dur = rs.getInt("Duracion");
+                    duracion = dur + " hrs";
+                } catch (Exception e) {
+                    // Si falla, leerlo como string
+                    duracion = rs.getString("Duracion");
+                }
+                
                 modelAlquileres.addRow(new Object[]{
-                    rs.getInt("IDAlquiler"),
+                    rs.getString("IDAlquiler"),
                     rs.getDate("FechaDeInicio"),
                     rs.getTime("HoraDeInicio"),
-                    rs.getInt("Duracion"),
-                    String.format("S/ %.2f", rs.getDouble("TotalAprox"))
+                    duracion,
+                    "Ver detalles"
                 });
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error al cargar alquileres: " + e.getMessage());
         }
     }
     
@@ -628,7 +736,7 @@ public class adminframe extends JFrame {
                         "p.PorcentajeDescuento, a.Duracion " +
                         "FROM DETALLEALQUILER da " +
                         "JOIN TURISTAA t ON da.IDTurista = t.IDTurista " +
-                        "JOIN RECURSOS r ON da.IDRecurso = r.IDRecursos " +
+                        "JOIN RECURSOS r ON da.IDRecurso = r.IDRecurso " +  // ← CAMBIADO
                         "JOIN Alquiler a ON da.IDAlquiler = a.IDAlquiler " +
                         "LEFT JOIN PROMOCION p ON da.IDPromocion = p.IDPromocion " +
                         "WHERE da.IDAlquiler = ?";
@@ -737,13 +845,14 @@ public class adminframe extends JFrame {
             
             while (rs.next()) {
                 modelPromociones.addRow(new Object[]{
-                    rs.getInt("IDPromocion"),
-                    rs.getDouble("PorcentajeDescuento") + "%",
+                    rs.getString("IDPromocion"),  // ← STRING (era getInt)
+                    rs.getString("PorcentajeDescuento") + "%",
                     rs.getString("Condiciones")
                 });
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error al cargar promociones: " + e.getMessage());
         }
     }
     
@@ -759,6 +868,7 @@ public class adminframe extends JFrame {
         int option = JOptionPane.showConfirmDialog(this, message, "Agregar Promoción", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
             try (Connection conn = conexion.getConnection()) {
+                String nuevoID = generarNuevoIDPromocion(conn);
                 String sql = "INSERT INTO PROMOCION (PorcentajeDescuento, Condiciones) VALUES (?, ?)";
                 PreparedStatement pst = conn.prepareStatement(sql);
                 pst.setDouble(1, Double.parseDouble(txtDescuento.getText()));
@@ -772,6 +882,24 @@ public class adminframe extends JFrame {
             }
         }
     }
+    private String generarNuevoIDPromocion(Connection conn) throws SQLException {
+        String prefijo = "P";
+        int siguienteNumero = 1;
+        
+        String sql = "SELECT TOP 1 IDPromocion FROM PROMOCION WHERE IDPromocion LIKE ? ORDER BY IDPromocion DESC";
+        PreparedStatement pst = conn.prepareStatement(sql);
+        pst.setString(1, prefijo + "%");
+        ResultSet rs = pst.executeQuery();
+        
+        if (rs.next()) {
+            String ultimoID = rs.getString("IDPromocion");
+            String numeroStr = ultimoID.substring(prefijo.length());
+            int numero = Integer.parseInt(numeroStr);
+            siguienteNumero = numero + 1;
+        }
+        
+        return String.format("%s%03d", prefijo, siguienteNumero);
+    }
     
     private void editPromocion() {
         int selectedRow = tablaPromociones.getSelectedRow();
@@ -780,7 +908,7 @@ public class adminframe extends JFrame {
             return;
         }
         
-        int id = (int) modelPromociones.getValueAt(selectedRow, 0);
+        String id = modelPromociones.getValueAt(selectedRow, 0).toString();  // ← STRING
         String descuentoStr = modelPromociones.getValueAt(selectedRow, 1).toString().replace("%", "");
         JTextField txtDescuento = new JTextField(descuentoStr);
         JTextField txtCondiciones = new JTextField(modelPromociones.getValueAt(selectedRow, 2).toString());
@@ -797,7 +925,7 @@ public class adminframe extends JFrame {
                 PreparedStatement pst = conn.prepareStatement(sql);
                 pst.setDouble(1, Double.parseDouble(txtDescuento.getText()));
                 pst.setString(2, txtCondiciones.getText());
-                pst.setInt(3, id);
+                pst.setString(3, id);  // ← STRING
                 pst.executeUpdate();
                 
                 JOptionPane.showMessageDialog(this, "Promoción actualizada");
@@ -815,7 +943,7 @@ public class adminframe extends JFrame {
             return;
         }
         
-        int id = (int) modelPromociones.getValueAt(selectedRow, 0);
+        String id = modelPromociones.getValueAt(selectedRow, 0).toString();  // ← STRING
         int confirm = JOptionPane.showConfirmDialog(this, 
             "¿Eliminar esta promoción?", 
             "Confirmar", 
@@ -825,7 +953,7 @@ public class adminframe extends JFrame {
             try (Connection conn = conexion.getConnection()) {
                 String sql = "DELETE FROM PROMOCION WHERE IDPromocion=?";
                 PreparedStatement pst = conn.prepareStatement(sql);
-                pst.setInt(1, id);
+                pst.setString(1, id);  // ← STRING
                 pst.executeUpdate();
                 
                 JOptionPane.showMessageDialog(this, "Promoción eliminada");
@@ -859,4 +987,3 @@ public class adminframe extends JFrame {
         }
     }
 }
-

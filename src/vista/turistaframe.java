@@ -23,15 +23,15 @@ public class turistaframe extends JFrame {
     private JLabel lblTotal;
     private ArrayList<CartItem> cart = new ArrayList<>();
     private JTabbedPane tabbedPane;
-    private int idTurista = -1; 
+    private String idTurista = ""; 
     
     class CartItem {
-        int idRecurso;
+        String idRecurso;
         String nombre;
         double tarifaPorHora;
         int horas;
         
-        CartItem(int id, String nombre, double tarifa, int horas) {
+        CartItem(String id, String nombre, double tarifa, int horas) {
             this.idRecurso = id;
             this.nombre = nombre;
             this.tarifaPorHora = tarifa;
@@ -41,6 +41,7 @@ public class turistaframe extends JFrame {
     
     public turistaframe(Usuario user) {
         this.currentUser = user;
+        this.idTurista = user.getIDUsuario();
         
         setTitle("Panel Turista - " + user.getNombre());
         setSize(1000, 650);
@@ -146,7 +147,7 @@ public class turistaframe extends JFrame {
         JPanel totalPanel = new JPanel(new BorderLayout());
         totalPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        lblTotal = new JLabel("Total: $0.00");
+        lblTotal = new JLabel("Total: S/0.00");
         lblTotal.setFont(new Font("Arial", Font.BOLD, 24));
         lblTotal.setHorizontalAlignment(SwingConstants.RIGHT);
         
@@ -219,7 +220,7 @@ public class turistaframe extends JFrame {
             
             while (rs.next()) {
                 modelRecursos.addRow(new Object[]{
-                    rs.getInt("IDRecursos"),
+                    rs.getString("IDRecurso"),
                     rs.getString("Recurso"),
                     rs.getString("Descripcion"),
                     String.format("S/ %.2f", rs.getDouble("TarifaPorHora")),
@@ -233,23 +234,24 @@ public class turistaframe extends JFrame {
     
      private void loadMyAlquileres() {
         modelMyAlquileres.setRowCount(0);
-        if (idTurista == -1) return;
+        if  (idTurista == null || idTurista.isEmpty())
+                return;
         
         try (Connection conn = conexion.getConnection()) {
             String sql = "SELECT a.IDAlquiler, a.FechaDeInicio, a.HoraDeInicio, a.Duracion, " +
                         "r.Recurso, r.TarifaPorHora, r.Estado " +
                         "FROM Alquiler a " +
                         "JOIN DETALLEALQUILER da ON a.IDAlquiler = da.IDAlquiler " +
-                        "JOIN RECURSOS r ON da.IDRecurso = r.IDRecursos " +
+                        "JOIN RECURSOS r ON da.IDRecurso = r.IDRecurso " +
                         "WHERE da.IDTurista = ? " +
                         "ORDER BY a.FechaDeInicio DESC";
             PreparedStatement pst = conn.prepareStatement(sql);
-            pst.setInt(1, idTurista);
+            pst.setString(1, idTurista);
             ResultSet rs = pst.executeQuery();
             
             while (rs.next()) {
                 modelMyAlquileres.addRow(new Object[]{
-                    rs.getInt("IDAlquiler"),
+                    rs.getString("IDAlquiler"),
                     rs.getDate("FechaDeInicio"),
                     rs.getTime("HoraDeInicio"),
                     rs.getInt("Duracion") + " hrs",
@@ -269,7 +271,7 @@ public class turistaframe extends JFrame {
             return;
         }
         
-        int id = (int) modelRecursos.getValueAt(selectedRow, 0);
+        String id = modelRecursos.getValueAt(selectedRow, 0).toString();;
         String nombre = (String) modelRecursos.getValueAt(selectedRow, 1);
         String tarifaStr = (String) modelRecursos.getValueAt(selectedRow, 3);
         double tarifa = Double.parseDouble(tarifaStr.replace("S/ ", ""));
@@ -282,6 +284,28 @@ public class turistaframe extends JFrame {
         cart.add(new CartItem(id, nombre, tarifa, horas));
         updateCartTable();
     }
+    private String generarNuevoIDAlquiler(Connection conn) throws SQLException {
+    String prefijo = "A";  // Prefijo para alquileres
+    int siguienteNumero = 1;
+    
+    // Obtener el último IDAlquiler existente
+    String sql = "SELECT TOP 1 IDAlquiler FROM ALQUILER WHERE IDAlquiler LIKE ? ORDER BY IDAlquiler DESC";
+    PreparedStatement pst = conn.prepareStatement(sql);
+    pst.setString(1, prefijo + "%");
+    ResultSet rs = pst.executeQuery();
+    
+    if (rs.next()) {
+        String ultimoID = rs.getString("IDAlquiler");
+        
+        // Extraer número: "A005" → "005" → 5
+        String numeroStr = ultimoID.substring(prefijo.length());
+        int numero = Integer.parseInt(numeroStr);
+        siguienteNumero = numero + 1;
+    }
+    
+    // Formatear con ceros: 6 → "006", 12 → "012"
+    return String.format("%s%03d", prefijo, siguienteNumero);
+}
     
     private void removeFromCart() {
         int selectedRow = tableCart.getSelectedRow();
@@ -318,73 +342,74 @@ public class turistaframe extends JFrame {
     }
     
     private void processAlquiler() {
-        if (cart.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "El carrito está vacío");
-            return;
-        }
-        
-        if (idTurista == -1) {
-            JOptionPane.showMessageDialog(this, "No se pudo identificar al turista");
-            return;
-        }
-        
-        int confirm = JOptionPane.showConfirmDialog(this,
+    if (cart.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "El carrito está vacío");
+        return;
+    }
+
+    if (idTurista == null || idTurista.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "No se pudo identificar al turista");
+        return;
+    }
+
+    int confirm = JOptionPane.showConfirmDialog(this,
             "¿Confirmar alquiler?",
             "Confirmar",
             JOptionPane.YES_NO_OPTION);
-            
-        if (confirm != JOptionPane.YES_OPTION) return;
-        
-        try (Connection conn = conexion.getConnection()) {
-            conn.setAutoCommit(false);
-            
-            // Calcular duración promedio
-            int duracionTotal = 0;
-            for (CartItem item : cart) {
-                duracionTotal += item.horas;
-            }
-            int duracionPromedio = duracionTotal / cart.size();
-            
-            // Insertar alquiler
-            String sqlAlquiler = "INSERT INTO Alquiler (FechaDeInicio, HoraDeInicio, Duracion) VALUES (?, ?, ?)";
-            PreparedStatement pstAlquiler = conn.prepareStatement(sqlAlquiler, Statement.RETURN_GENERATED_KEYS);
-            pstAlquiler.setDate(1, Date.valueOf(LocalDate.now()));
-            pstAlquiler.setTime(2, Time.valueOf(LocalTime.now()));
-            pstAlquiler.setInt(3, duracionPromedio);
-            pstAlquiler.executeUpdate();
-            
-            ResultSet rsAlquiler = pstAlquiler.getGeneratedKeys();
-            int idAlquiler = 0;
-            if (rsAlquiler.next()) {
-                idAlquiler = rsAlquiler.getInt(1);
-            }
-            
-            // Insertar detalles
-            for (CartItem item : cart) {
-                String sqlDetalle = "INSERT INTO DETALLEALQUILER (IDRecurso, IDTurista, IDAlquiler, IDPromocion) VALUES (?, ?, ?, NULL)";
-                PreparedStatement pstDetalle = conn.prepareStatement(sqlDetalle);
-                pstDetalle.setInt(1, item.idRecurso);
-                pstDetalle.setInt(2, idTurista);
-                pstDetalle.setInt(3, idAlquiler);
-                pstDetalle.executeUpdate();
-            
-            conn.commit();
-            
-            JOptionPane.showMessageDialog(this,
-                String.format("¡Alquiler confirmado!\nTotal: $%.2f\nID: %d", duracionTotal, idAlquiler),
+
+    if (confirm != JOptionPane.YES_OPTION) return;
+
+    try (Connection conn = conexion.getConnection()) {
+        conn.setAutoCommit(false);
+
+        // Calcular la duración promedio
+        int duracionTotal = 0;
+        for (CartItem item : cart) {
+            duracionTotal += item.horas;
+        }
+        int duracionPromedio = duracionTotal / cart.size();
+
+        // Generar ID manual
+        String idAlquiler = generarNuevoIDAlquiler(conn);
+
+        // Insertar alquiler
+        String sqlAlquiler = 
+            "INSERT INTO Alquiler (IDAlquiler, FechaDeInicio, HoraDeInicio, Duracion) VALUES (?, ?, ?, ?)";
+
+        PreparedStatement pstAlquiler = conn.prepareStatement(sqlAlquiler);
+        pstAlquiler.setString(1, idAlquiler);
+        pstAlquiler.setDate(2, Date.valueOf(LocalDate.now()));
+        pstAlquiler.setTime(3, Time.valueOf(LocalTime.now()));
+        pstAlquiler.setInt(4, duracionPromedio);
+        pstAlquiler.executeUpdate();
+
+        // Insertar detalles
+        for (CartItem item : cart) {
+            String sqlDetalle =
+                    "INSERT INTO DETALLEALQUILER (IDRecurso, IDTurista, IDAlquiler, IDPromocion) VALUES (?, ?, ?, NULL)";
+            PreparedStatement pstDetalle = conn.prepareStatement(sqlDetalle);
+            pstDetalle.setString(1, item.idRecurso);
+            pstDetalle.setString(2, idTurista);
+            pstDetalle.setString(3, idAlquiler);
+            pstDetalle.executeUpdate();
+        }
+
+        conn.commit();
+
+        JOptionPane.showMessageDialog(this,
+                String.format("¡Alquiler confirmado!\nTotal: S/ %.2f\nID: %s", (double) duracionTotal, idAlquiler),
                 "Éxito",
                 JOptionPane.INFORMATION_MESSAGE);
-            
-            clearCart();
-            loadRecursos();
-            loadMyAlquileres();
-            
-        }
-     } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
-        }
+
+        clearCart();
+        loadRecursos();
+        loadMyAlquileres();
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
     }
+}
     
     private void returnProduct() {
         int selectedRow = tableMyAlquileres.getSelectedRow();
@@ -412,7 +437,7 @@ public class turistaframe extends JFrame {
             conn.setAutoCommit(false);
             
             // Actualizar estado
-            String sql = "UPDATE rentas SET estado = 'devuelto' WHERE id = ?";
+            String sql = "UPDATE Alquiler SET estado = 'devuelto' WHERE id = ?";
             PreparedStatement pst = conn.prepareStatement(sql);
             pst.setInt(1, rentaId);
             pst.executeUpdate();

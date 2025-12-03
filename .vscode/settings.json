@@ -5,5 +5,13 @@
     "java.project.sourcePaths": [
         "src"
     ],
-    "java.project.outputPath": "bin"
+    "java.project.outputPath": "bin",
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-25",
+            "path": "C:\\Program Files\\Java\\jdk-25",
+            "default": true
+        }
+    ],
+    "java.jdt.ls.java.home": "C:\\Program Files\\Java\\jdk-25"
 }

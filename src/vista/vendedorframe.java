@@ -22,12 +22,12 @@ public class vendedorframe extends JFrame {
     private ArrayList<CartItem> cart = new ArrayList<>();
     
     class CartItem {
-        int idRecurso;
+        String idRecurso;
         String nombre;
         double tarifaPorHora;
         int horas;
         
-        CartItem(int id, String nombre, double tarifa, int horas) {
+        CartItem(String id, String nombre, double tarifa, int horas) {
             this.idRecurso = id;
             this.nombre = nombre;
             this.tarifaPorHora = tarifa;
@@ -164,8 +164,8 @@ public class vendedorframe extends JFrame {
                 modelRecursos.addRow(new Object[]{
                     rs.getString("IDRecurso"),
                     rs.getString("Recurso"),
-                    String.format("$%.2f", rs.getDouble("Tarifa/Hora")),
-                    rs.getString("categoria")
+                    String.format("$%.2f", rs.getDouble("TarifaPorHora")),
+                    rs.getString("Estado")
                 });
             }
         } catch (SQLException e) {
@@ -180,32 +180,34 @@ public class vendedorframe extends JFrame {
             return;
         }
         
-        int id = (int) modelRecursos.getValueAt(selectedRow, 0);
+        String id = modelRecursos.getValueAt(selectedRow, 0).toString();
         String nombre = (String) modelRecursos.getValueAt(selectedRow, 1);
-        String tarifaStr = (String) modelRecursos.getValueAt(selectedRow, 2);
-        double tarifa = Double.parseDouble(tarifaStr.replace("S/", ""));
-        
-        String horasStr  = JOptionPane.showInputDialog(this, "Cuantas Horas:", "1");
-        if (horasStr  == null || horasStr .isEmpty()) return;
-        
-        int horas = Integer.parseInt(horasStr );
-        
-        
-        // Verificar si ya está en el carrito
-        boolean found = false;
-        for (CartItem item : cart) {
-            if (item.idRecurso == id) {
-                item.horas += horas;
-                found = true;
-                break;
-            }
+        String tarifaStr = modelRecursos.getValueAt(selectedRow, 2).toString();
+
+    // Normalizar el string de tarifa: "S/ 12.34" -> "12.34"
+    tarifaStr = tarifaStr.replace("S/", "").replace("$", "").trim();
+    double tarifa = Double.parseDouble(tarifaStr);
+
+    String horasStr  = JOptionPane.showInputDialog(this, "Cuántas Horas:", "1");
+    if (horasStr  == null || horasStr.isEmpty()) return;
+
+    int horas = Integer.parseInt(horasStr);
+
+    // Verificar si ya está en el carrito (usar equals para strings)
+    boolean found = false;
+    for (CartItem item : cart) {
+        if (item.idRecurso.equals(id)) {
+            item.horas += horas;
+            found = true;
+            break;
         }
-        
-        if (!found) {
-            cart.add(new CartItem(id, nombre, tarifa, horas));
-        }
-        
-        updateCartTable();
+    }
+
+    if (!found) {
+        cart.add(new CartItem(id, nombre, tarifa, horas));
+    }
+
+    updateCartTable();
     }
     
     private void removeFromCart() {
@@ -233,91 +235,107 @@ public class vendedorframe extends JFrame {
             total += subtotal;
             modelCart.addRow(new Object[]{
                 item.nombre,
-                String.format("$%.2f", item.tarifaPorHora),
+                String.format("S/ %.2f", item.tarifaPorHora),
                 item.horas + "hrs",
-                String.format("$%.2f", subtotal)
+                String.format("S/ %.2f", subtotal)
             });
         }
         
-        lblTotal.setText(String.format("Total: $%.2f", total));
+        lblTotal.setText(String.format("Total: S/ %.2f", total));
     }
+    private String generarNuevoIDAlquiler(Connection conn) throws SQLException {
+    String prefijo = "A";  // Prefijo para alquileres
+    int siguienteNumero = 1;
+    
+    // Obtener el último IDAlquiler existente
+    String sql = "SELECT TOP 1 IDAlquiler FROM ALQUILER WHERE IDAlquiler LIKE ? ORDER BY IDAlquiler DESC";
+    PreparedStatement pst = conn.prepareStatement(sql);
+    pst.setString(1, prefijo + "%");
+    ResultSet rs = pst.executeQuery();
+    
+    if (rs.next()) {
+        String ultimoID = rs.getString("IDAlquiler");
+        
+        // Extraer número: "A005" → "005" → 5
+        String numeroStr = ultimoID.substring(prefijo.length());
+        int numero = Integer.parseInt(numeroStr);
+        siguienteNumero = numero + 1;
+    }
+    
+    // Formatear con ceros: 6 → "006", 12 → "012"
+    return String.format("%s%03d", prefijo, siguienteNumero);
+}
     
     private void processRental() {
         if (cart.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "El carrito está vacío");
+        JOptionPane.showMessageDialog(this, "El carrito está vacío");
+        return;
+    }
+
+    String dni = JOptionPane.showInputDialog(this, "DNI del Turista:");
+    if (dni == null || dni.isEmpty()) return;
+
+    try (Connection conn = conexion.getConnection()) {
+        conn.setAutoCommit(false);
+
+        // Buscar turista por DNI (ajusta el nombre de la tabla si es necesario)
+        String sqlTurista = "SELECT IDTurista FROM TURISTAA WHERE DNI = ?";
+        PreparedStatement pstTurista = conn.prepareStatement(sqlTurista);
+        pstTurista.setString(1, dni);
+        ResultSet rsTurista = pstTurista.executeQuery();
+
+        if (!rsTurista.next()) {
+            JOptionPane.showMessageDialog(this, "Turista no encontrado. Debe estar registrado primero.");
+            conn.rollback();
             return;
         }
-        
-        // Solicitar ID del cliente
-        String dni = JOptionPane.showInputDialog(this, "DNI del Turista:");
-        if (dni == null || dni.isEmpty()) return;
-        
-        try (Connection conn = conexion.getConnection()) {
-            conn.setAutoCommit(false);
-            
-            // Buscar turista por DNI
-            String sqlTurista = "SELECT IDTurista FROM TURISTAA WHERE DNI = ?";
-            PreparedStatement pstTurista = conn.prepareStatement(sqlTurista);
-            pstTurista.setString(1, dni);
-            ResultSet rsTurista = pstTurista.executeQuery();
-            
-            if (!rsTurista.next()) {
-                JOptionPane.showMessageDialog(this, "Turista no encontrado. Debe estar registrado primero.");
-                conn.rollback();
-                return;
-            }
-            
-            int idTurista = rsTurista.getInt("IDTurista");
-            
-            // Obtener duración total (promedio de horas)
-            int duracionTotal = 0;
-            for (CartItem item : cart) {
-                duracionTotal += item.horas;
-            }
-            int duracionPromedio = duracionTotal / cart.size();
-            
-            // Insertar el alquiler
-            String sqlAlquiler = "INSERT INTO Alquiler (FechaDeInicio, HoraDeInicio, Duracion) VALUES (?, ?, ?)";
-            PreparedStatement pstAlquiler = conn.prepareStatement(sqlAlquiler, Statement.RETURN_GENERATED_KEYS);
-            pstAlquiler.setDate(1, Date.valueOf(LocalDate.now()));
-            pstAlquiler.setTime(2, Time.valueOf(LocalTime.now()));
-            pstAlquiler.setInt(3, duracionPromedio);
-            pstAlquiler.executeUpdate();
-            
-            ResultSet rsAlquiler = pstAlquiler.getGeneratedKeys();
-            int idAlquiler = 0;
-            if (rsAlquiler.next()) {
-                idAlquiler = rsAlquiler.getInt(1);
-            }
-            
-            // Insertar detalles y actualizar estado de recursos
-            for (CartItem item : cart) {
-                // Insertar detalle
-                String sqlDetalle = "INSERT INTO DETALLEALQUILER (IDRecurso, IDTurista, IDAlquiler, IDPromocion) VALUES (?, ?, ?, NULL)";
-                PreparedStatement pstDetalle = conn.prepareStatement(sqlDetalle);
-                pstDetalle.setInt(1, item.idRecurso);
-                pstDetalle.setInt(2, idTurista);
-                pstDetalle.setInt(3, idAlquiler);
-                pstDetalle.executeUpdate();
-                
-                // Actualizar estado del recurso
-                String sqlEstado = "UPDATE RECURSOS SET Estado = 'alquilado' WHERE IDRecursos = ?";
-                PreparedStatement pstEstado = conn.prepareStatement(sqlEstado);
-                pstEstado.setInt(1, item.idRecurso);
-                pstEstado.executeUpdate();
-            }
-            
-            conn.commit();
-            
-            double total = 0;
-            for (CartItem item : cart) {
-                total += item.tarifaPorHora * item.horas;
-            }
-            
-            JOptionPane.showMessageDialog(this, 
-                String.format("Alquiler procesado exitosamente\nTotal: S/ %.2f\nAlquiler ID: %d", total, idAlquiler),
-                "Éxito",
-                JOptionPane.INFORMATION_MESSAGE);
+
+        int idTurista = rsTurista.getInt("IDTurista");
+
+        // Calcular duración promedio
+        int duracionTotal = 0;
+        for (CartItem item : cart) {
+            duracionTotal += item.horas;
+        }
+        int duracionPromedio = duracionTotal / cart.size();
+
+        // Generar IDAlquiler (si usas IDs tipo "A001")
+        String idAlquiler = generarNuevoIDAlquiler(conn); 
+
+        // Insertar alquiler incluyendo IDAlquiler
+        String sqlAlquiler = "INSERT INTO Alquiler (IDAlquiler, FechaDeInicio, HoraDeInicio, Duracion) VALUES (?, ?, ?, ?)";
+        PreparedStatement pstAlquiler = conn.prepareStatement(sqlAlquiler);
+        pstAlquiler.setString(1, idAlquiler);
+        pstAlquiler.setDate(2, Date.valueOf(LocalDate.now()));
+        pstAlquiler.setTime(3, Time.valueOf(LocalTime.now()));
+        pstAlquiler.setInt(4, duracionPromedio);
+        pstAlquiler.executeUpdate();
+
+        // Insertar detalles y actualizar estado de recursos
+        for (CartItem item : cart) {
+            String sqlDetalle = "INSERT INTO DETALLEALQUILER (IDRecurso, IDTurista, IDAlquiler, IDPromocion) VALUES (?, ?, ?, NULL)";
+            PreparedStatement pstDetalle = conn.prepareStatement(sqlDetalle);
+            pstDetalle.setString(1, item.idRecurso);
+            pstDetalle.setInt(2, idTurista);
+            pstDetalle.setString(3, idAlquiler);
+            pstDetalle.executeUpdate();
+
+            // Actualizar estado del recurso (usar columna IDRecurso)
+            String sqlEstado = "UPDATE RECURSOS SET Estado = 'alquilado' WHERE IDRecurso = ?";
+            PreparedStatement pstEstado = conn.prepareStatement(sqlEstado);
+            pstEstado.setString(1, item.idRecurso);
+            pstEstado.executeUpdate();
+        }
+
+        conn.commit();
+
+        double total = 0;
+        for (CartItem item : cart) total += item.tarifaPorHora * item.horas;
+
+        JOptionPane.showMessageDialog(this,
+            String.format("Alquiler procesado exitosamente\nTotal: S/ %.2f\nAlquiler ID: %s", total, idAlquiler),
+            "Éxito",
+            JOptionPane.INFORMATION_MESSAGE);
             
             clearCart();
 
