@@ -1,8 +1,16 @@
 package vista;
 
 import javax.swing.*;
+
+import database.conexion;
+import modelo.Usuario;
+
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class login extends JFrame {
 
@@ -21,7 +29,7 @@ public class login extends JFrame {
 
         // PANEL IZQUIERDO CON IMAGEN
         JLabel lblImagen = new JLabel();
-        lblImagen.setIcon(new ImageIcon("src/imagenes/playa.jpg")); // <--- Cambia esto
+        lblImagen.setIcon(new ImageIcon("src/Imagen/playa.png")); 
         lblImagen.setHorizontalAlignment(JLabel.CENTER);
         lblImagen.setVerticalAlignment(JLabel.CENTER);
         add(lblImagen, BorderLayout.WEST);
@@ -121,7 +129,87 @@ public class login extends JFrame {
     }
 
     private void loginuser() {
-        JOptionPane.showMessageDialog(this, "Aquí va tu lógica de login");
+        String username = txtUsername.getText().trim();
+        String password = new String(txtPassword.getPassword()).trim();
+
+    // Validación básica
+    if (username.isEmpty() || password.isEmpty()) {
+        JOptionPane.showMessageDialog(this,
+            "Complete todos los campos.",
+            "Advertencia", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+
+    try (Connection conn = conexion.getConnection()) {
+
+        String sql = "SELECT * FROM USUARIO WHERE IDUsuario = ? OR UPPER(Nombre) = UPPER(?)";
+        PreparedStatement pst = conn.prepareStatement(sql);
+        pst.setString(1, username);
+        pst.setString(2, username);
+
+        ResultSet rs = pst.executeQuery();
+
+        if (!rs.next()) {
+            JOptionPane.showMessageDialog(this,
+                "Usuario no encontrado.",
+                "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String userBD = rs.getString("IDUsuario");
+        String nombreBD = rs.getString("Nombre");
+        String passBD = rs.getString("Contraseña");
+        String tipoBD = rs.getString("TipoDeUsuario");
+
+        // Comparación directa (tu BD almacena texto plano)
+        if (!password.equals(passBD)) {
+            JOptionPane.showMessageDialog(this,
+                "Contraseña incorrecta.",
+                "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // ---- LOGIN EXITOSO ----
+        Usuario user = new Usuario(
+            rs.getString("IDUsuario"),
+            tipoBD,
+            nombreBD,
+            passBD
+        );
+
+        JOptionPane.showMessageDialog(this,
+            "Bienvenido " + nombreBD,
+            "Ingreso correcto",
+            JOptionPane.INFORMATION_MESSAGE);
+
+        dispose(); // Cierra login
+
+        // Redirección según el tipo de usuario
+        switch (tipoBD.toLowerCase()) {
+            case "administrador":
+                new adminframe(user).setVisible(true);
+                break;
+
+            case "empleado":
+                new vendedorframe(user).setVisible(true);
+                break;
+
+            case "turista":
+                new turistaframe(user).setVisible(true);
+                break;
+
+            default:
+                JOptionPane.showMessageDialog(this,
+                    "Tipo de usuario desconocido: " + tipoBD,
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this,
+            "Error de conexión: " + e.getMessage(),
+            "SQL Error", JOptionPane.ERROR_MESSAGE);
+    }
     }
 
     public static void main(String[] args) {
