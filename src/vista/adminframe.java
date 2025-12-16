@@ -239,7 +239,7 @@ public class adminframe extends JFrame {
         
         String tarifaStr = modelRecursos.getValueAt(selectedRow, 3).toString().replace("S/ ", "");
         JTextField txtTarifa = new JTextField(tarifaStr);
-        JComboBox<String> cmbEstado = new JComboBox<>(new String[]{"disponible", "alquilado", "mantenimiento"});
+        JComboBox<String> cmbEstado = new JComboBox<>(new String[]{"DISPONIBLE", "ALQUILADO", "MANTENIMIENTO"});
         cmbEstado.setSelectedItem(modelRecursos.getValueAt(selectedRow, 4).toString());
         
         Object[] message = {
