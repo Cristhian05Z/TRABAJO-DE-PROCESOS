@@ -1,0 +1,18 @@
+# Java compilado
+*.class
+
+# Carpetas generadas
+/bin/
+/build/
+/dist/
+
+# VS Code
+.vscode/
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Logs
+*.log
