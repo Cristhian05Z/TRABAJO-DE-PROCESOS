@@ -78,13 +78,34 @@ public class turistaframe extends JFrame {
         loadMyAlquileres();
     }
     
+    private void modernTable(JTable table) {
+            table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+            table.setRowHeight(32);
+            table.setShowVerticalLines(false);
+            table.setShowHorizontalLines(false);
+            table.setIntercellSpacing(new Dimension(0, 0));
+            table.setSelectionBackground(new Color(52, 152, 219));
+            table.setSelectionForeground(Color.WHITE);
+
+            JTableHeader header = table.getTableHeader();
+            header.setFont(new Font("Segoe UI", Font.BOLD, 13));
+            header.setBackground(new Color(44, 62, 80));
+            header.setForeground(Color.WHITE);
+            header.setReorderingAllowed(false);
+    }
+
     private JPanel createAlquilerPanel() {
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
         // Panel superior - Recursos
         JPanel topSection = new JPanel(new BorderLayout(10, 10));
-        topSection.setBorder(BorderFactory.createTitledBorder("Recursos Disponibles"));
+        JLabel lblRecursos = new JLabel("  Recursos Disponibles");
+        lblRecursos.setIcon(new ImageIcon("src/Imagen/recursos.png"));
+        lblRecursos.setFont(new Font("Segoe UI", Font.BOLD, 16));
+
+        topSection.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+        topSection.add(lblRecursos, BorderLayout.NORTH);
         
         modelRecursos = new DefaultTableModel(
             new String[]{"ID", "Recurso", "Descripción", "Tarifa/Hora", "Estado"}, 0
@@ -105,7 +126,7 @@ public class turistaframe extends JFrame {
         
         btnAddToCart.setBackground(new Color(52, 152, 219));
         btnAddToCart.setForeground(Color.WHITE);
-        btnAddToCart.setFont(new Font("Arial", Font.BOLD, 12));
+        btnAddToCart.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnAddToCart.addActionListener(e -> addToCart());
         btnRefresh.addActionListener(e -> loadRecursos());
         
@@ -117,7 +138,12 @@ public class turistaframe extends JFrame {
         
         // Panel inferior - Carrito
         JPanel bottomSection = new JPanel(new BorderLayout(10, 10));
-        bottomSection.setBorder(BorderFactory.createTitledBorder("Mi Carrito"));
+        JLabel lblCarrito = new JLabel("  Mi Carrito");
+        lblCarrito.setIcon(new ImageIcon("src/Imagen/carrito.png"));
+        lblCarrito.setFont(new Font("Segoe UI", Font.BOLD, 16));
+
+        bottomSection.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+        bottomSection.add(lblCarrito, BorderLayout.NORTH);
         
         modelCart = new DefaultTableModel(
             new String[]{"Recurso", "Tarifa", "Horas", "Subtotal"}, 0
@@ -128,6 +154,7 @@ public class turistaframe extends JFrame {
             }
         };
         tableCart = new JTable(modelCart);
+        modernTable(tableCart);
         tableCart.setRowHeight(30);
         JScrollPane scrollCart = new JScrollPane(tableCart);
         
@@ -136,9 +163,12 @@ public class turistaframe extends JFrame {
         JButton btnClear = new JButton("Limpiar");
         
         btnRemove.setBackground(new Color(231, 76, 60));
+        btnRemove.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnRemove.setForeground(Color.WHITE);
         btnRemove.addActionListener(e -> removeFromCart());
         btnClear.addActionListener(e -> clearCart());
+        btnClear.setFont(new Font("Segoe UI", Font.BOLD, 13));
+
         
         btnPanelBottom.add(btnRemove);
         btnPanelBottom.add(btnClear);
@@ -154,7 +184,7 @@ public class turistaframe extends JFrame {
         JButton btnRent = new JButton("Confirmar Alquiler");
         btnRent.setBackground(new Color(46, 204, 113));
         btnRent.setForeground(Color.WHITE);
-        btnRent.setFont(new Font("Arial", Font.BOLD, 16));
+        btnRent.setFont(new Font("Segoe UI", Font.BOLD, 16));
         btnRent.setPreferredSize(new Dimension(200, 45));
         btnRent.addActionListener(e -> processAlquiler());
         
@@ -190,6 +220,7 @@ public class turistaframe extends JFrame {
             }
         };
         tableMyAlquileres = new JTable(modelMyAlquileres);
+        modernTable(tableMyAlquileres);
         tableMyAlquileres.setRowHeight(30);
         JScrollPane scrollPane = new JScrollPane(tableMyAlquileres);
         
@@ -405,6 +436,7 @@ public class turistaframe extends JFrame {
         loadRecursos();
         loadMyAlquileres();
 
+        
     } catch (SQLException e) {
         e.printStackTrace();
         JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
