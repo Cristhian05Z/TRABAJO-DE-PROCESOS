@@ -29,7 +29,7 @@ public class login extends JFrame {
 
         // PANEL IZQUIERDO CON IMAGEN
         JLabel lblImagen = new JLabel();
-        lblImagen.setIcon(new ImageIcon("src/Imagen/playa.png")); 
+        //lblImagen.setIcon(new ImageIcon("src/Imagen/playa.png")); 
         lblImagen.setHorizontalAlignment(JLabel.CENTER);
         lblImagen.setVerticalAlignment(JLabel.CENTER);
         add(lblImagen, BorderLayout.WEST);
