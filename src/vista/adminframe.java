@@ -6,6 +6,7 @@ import database.conexion;
 import java.awt.*;
 import java.sql.*;
 
+
 public class adminframe extends JFrame {
     
     private Usuario currentUser;
@@ -654,13 +655,23 @@ public class adminframe extends JFrame {
         
         // Tabla: IDAlquiler, FechaDeInicio, HoraDeInicio, Duracion
         modelAlquileres = new DefaultTableModel(
-            new String[]{"ID", "Fecha Inicio", "Hora Inicio", "Duración (hrs)", "Total Aprox."}, 0
+        new String[]{
+        "ID",
+        "Turista",
+        "Recurso",
+        "Fecha Inicio",
+        "Hora Inicio",
+        "Duración (hrs)",
+        "Total Aprox."
+    }, 
+    0
         ) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
+    @Override
+    public boolean isCellEditable(int row, int column) {
+        return false;
+    }
+};
+
         tablaAlquileres = new JTable(modelAlquileres);
         tablaAlquileres.setRowHeight(30);
         JScrollPane scrollPane = new JScrollPane(tablaAlquileres);
@@ -685,108 +696,126 @@ public class adminframe extends JFrame {
     }
     
     private void loadAlquileres() {
-        modelAlquileres.setRowCount(0);
-        try (Connection conn = conexion.getConnection()) {
-            // ✅ Simplificado para evitar errores de conversión
-            String sql = "SELECT IDAlquiler, FechaDeInicio, HoraDeInicio, Duracion FROM Alquiler " +
-                        "ORDER BY FechaDeInicio DESC, HoraDeInicio DESC";
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
-            
-            while (rs.next()) {
-                String duracion;
-                try {
-                    int dur = rs.getInt("Duracion");
-                    duracion = dur + " hrs";
-                } catch (Exception e) {
-                    // Si falla, leerlo como string
-                    duracion = rs.getString("Duracion");
-                }
-                
-                modelAlquileres.addRow(new Object[]{
-                    rs.getString("IDAlquiler"),
-                    rs.getDate("FechaDeInicio"),
-                    rs.getTime("HoraDeInicio"),
-                    duracion,
-                    "Ver detalles"
-                });
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error al cargar alquileres: " + e.getMessage());
+    modelAlquileres.setRowCount(0);
+
+    try (Connection conn = conexion.getConnection()) {
+
+        String sql =
+            "SELECT a.IDAlquiler, " +
+            "u.Nombre AS Turista, " +
+            "r.Recurso, " +
+            "a.FechaDeInicio, " +
+            "a.HoraDeInicio, " +
+            "a.Duracion, " +
+            "r.TarifaPorHora * a.Duracion AS Total " +
+            "FROM ALQUILER a " +
+            "JOIN DETALLEALQUILER d ON a.IDAlquiler = d.IDAlquiler " +
+            "JOIN USUARIO u ON d.IDTurista = u.IDUsuario " +
+            "JOIN RECURSOS r ON d.IDRecurso = r.IDRecurso";
+
+        PreparedStatement pst = conn.prepareStatement(sql); 
+        ResultSet rs = pst.executeQuery();
+
+        while (rs.next()) {
+            modelAlquileres.addRow(new Object[]{
+                rs.getString("IDAlquiler"),
+                rs.getString("Turista"),
+                rs.getString("Recurso"),
+                rs.getDate("FechaDeInicio"),
+                rs.getTime("HoraDeInicio"),
+                rs.getInt("Duracion"),
+                String.format("S/ %.2f", rs.getDouble("Total"))
+            });
         }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
+}
+
     
     private void verDetallesAlquiler() {
-        int selectedRow = tablaAlquileres.getSelectedRow();
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Selecciona un alquiler");
-            return;
-        }
-        
-        int idAlquiler = (int) modelAlquileres.getValueAt(selectedRow, 0);
-        
-        StringBuilder detalles = new StringBuilder();
-        detalles.append("═══════════════════════════════════\n");
-        detalles.append("  DETALLES DEL ALQUILER #").append(idAlquiler).append("\n");
-        detalles.append("═══════════════════════════════════\n\n");
-        
-        try (Connection conn = conexion.getConnection()) {
-            String sql = "SELECT da.*, t.Nombre, t.Apellido, r.Recurso, r.TarifaPorHora, " +
-                        "p.PorcentajeDescuento, a.Duracion " +
-                        "FROM DETALLEALQUILER da " +
-                        "JOIN TURISTAA t ON da.IDTurista = t.IDTurista " +
-                        "JOIN RECURSOS r ON da.IDRecurso = r.IDRecurso " +  // ← CAMBIADO
-                        "JOIN Alquiler a ON da.IDAlquiler = a.IDAlquiler " +
-                        "LEFT JOIN PROMOCION p ON da.IDPromocion = p.IDPromocion " +
-                        "WHERE da.IDAlquiler = ?";
-            PreparedStatement pst = conn.prepareStatement(sql);
-            pst.setInt(1, idAlquiler);
-            ResultSet rs = pst.executeQuery();
-            
-            double totalGeneral = 0;
-            int count = 1;
-            
-            while (rs.next()) {
-                String cliente = rs.getString("Nombre") + " " + rs.getString("Apellido");
-                String recurso = rs.getString("Recurso");
-                double tarifa = rs.getDouble("TarifaPorHora");
-                int duracion = rs.getInt("Duracion");
-                double subtotal = tarifa * duracion;
-                
-                detalles.append(count++).append(". ").append(recurso).append("\n");
-                detalles.append("   Cliente: ").append(cliente).append("\n");
-                detalles.append("   Tarifa: S/ ").append(String.format("%.2f", tarifa)).append(" x ").append(duracion).append(" hrs\n");
-                detalles.append("   Subtotal: S/ ").append(String.format("%.2f", subtotal)).append("\n");
-                
-                if (rs.getObject("PorcentajeDescuento") != null) {
-                    double descuento = rs.getDouble("PorcentajeDescuento");
-                    double montoDescuento = subtotal * (descuento / 100);
-                    subtotal -= montoDescuento;
-                    detalles.append("   Descuento: ").append(descuento).append("% (-S/ ").append(String.format("%.2f", montoDescuento)).append(")\n");
-                    detalles.append("   Total con descuento: S/ ").append(String.format("%.2f", subtotal)).append("\n");
-                }
-                detalles.append("\n");
-                totalGeneral += subtotal;
-            }
-            
-            detalles.append("═══════════════════════════════════\n");
-            detalles.append("TOTAL GENERAL: S/ ").append(String.format("%.2f", totalGeneral)).append("\n");
-            detalles.append("═══════════════════════════════════");
-            
-            JTextArea textArea = new JTextArea(detalles.toString());
-            textArea.setEditable(false);
-            textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-            JScrollPane scrollPane = new JScrollPane(textArea);
-            scrollPane.setPreferredSize(new Dimension(450, 350));
-            
-            JOptionPane.showMessageDialog(this, scrollPane, "Detalles del Alquiler", JOptionPane.INFORMATION_MESSAGE);
-            
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
-        }
+
+    int selectedRow = tablaAlquileres.getSelectedRow();
+    if (selectedRow == -1) {
+        JOptionPane.showMessageDialog(this, "Selecciona un alquiler");
+        return;
     }
+
+    String idAlquiler = modelAlquileres.getValueAt(selectedRow, 0).toString();
+
+    StringBuilder detalles = new StringBuilder();
+    detalles.append("═══════════════════════════════════\n");
+    detalles.append("  DETALLES DEL ALQUILER #").append(idAlquiler).append("\n");
+    detalles.append("═══════════════════════════════════\n\n");
+
+    try (Connection conn = conexion.getConnection()) {
+
+        String sql =
+            "SELECT t.Nombre, t.Apellido, r.Recurso, r.TarifaPorHora, " +
+            "a.Duracion, p.PorcentajeDescuento " +
+            "FROM DETALLEALQUILER da " +
+            "JOIN TURISTAA t ON da.IDTurista = t.IDTurista " +
+            "JOIN RECURSOS r ON da.IDRecurso = r.IDRecurso " +
+            "JOIN ALQUILER a ON da.IDAlquiler = a.IDAlquiler " +
+            "LEFT JOIN PROMOCION p ON da.IDPromocion = p.IDPromocion " +
+            "WHERE da.IDAlquiler = ?";
+
+        PreparedStatement pst = conn.prepareStatement(sql);
+        pst.setString(1, idAlquiler);
+        ResultSet rs = pst.executeQuery();
+
+        double totalGeneral = 0;
+        int i = 1;
+
+        while (rs.next()) {
+            String cliente = rs.getString("Nombre") + " " + rs.getString("Apellido");
+            String recurso = rs.getString("Recurso");
+            double tarifa = rs.getDouble("TarifaPorHora");
+            int duracion = rs.getInt("Duracion");
+
+            double subtotal = tarifa * duracion;
+
+            detalles.append(i++).append(". ").append(recurso).append("\n");
+            detalles.append("   Cliente: ").append(cliente).append("\n");
+            detalles.append("   Tarifa: S/ ").append(String.format("%.2f", tarifa))
+                    .append(" x ").append(duracion).append(" hrs\n");
+
+            if (rs.getObject("PorcentajeDescuento") != null) {
+                double desc = rs.getDouble("PorcentajeDescuento");
+                double montoDesc = subtotal * desc / 100;
+                subtotal -= montoDesc;
+                detalles.append("   Descuento: ").append(desc)
+                        .append("% (-S/ ").append(String.format("%.2f", montoDesc)).append(")\n");
+            }
+
+            detalles.append("   Subtotal: S/ ")
+                    .append(String.format("%.2f", subtotal)).append("\n\n");
+
+            totalGeneral += subtotal;
+        }
+
+        detalles.append("═══════════════════════════════════\n");
+        detalles.append("TOTAL GENERAL: S/ ")
+                .append(String.format("%.2f", totalGeneral)).append("\n");
+        detalles.append("═══════════════════════════════════");
+
+        JTextArea area = new JTextArea(detalles.toString());
+        area.setEditable(false);
+        area.setFont(new Font("Monospaced", Font.PLAIN, 12));
+
+        JOptionPane.showMessageDialog(
+            this,
+            new JScrollPane(area),
+            "Detalles del Alquiler",
+            JOptionPane.INFORMATION_MESSAGE
+        );
+
+    } catch (SQLException e) {
+        JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+    }
+}
+
     
     // ============================================
     // PANEL DE PROMOCIONES

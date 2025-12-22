@@ -2,6 +2,8 @@ package vista;
 
 import javax.swing.*;
 import javax.swing.table.*;
+
+import DAO.DetalleAlquilerDAO;
 import database.conexion;
 import modelo.Usuario;
 import java.awt.*;
@@ -101,7 +103,7 @@ public class turistaframe extends JFrame {
         // Panel superior - Recursos
         JPanel topSection = new JPanel(new BorderLayout(10, 10));
         JLabel lblRecursos = new JLabel("  Recursos Disponibles");
-        lblRecursos.setIcon(new ImageIcon("src/Imagen/recursos.png"));
+        
         lblRecursos.setFont(new Font("Segoe UI", Font.BOLD, 16));
 
         topSection.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
@@ -139,7 +141,7 @@ public class turistaframe extends JFrame {
         // Panel inferior - Carrito
         JPanel bottomSection = new JPanel(new BorderLayout(10, 10));
         JLabel lblCarrito = new JLabel("  Mi Carrito");
-        lblCarrito.setIcon(new ImageIcon("src/Imagen/carrito.png"));
+        lblCarrito.setIcon(new ImageIcon("src/Imagen/carrito.jpg"));
         lblCarrito.setFont(new Font("Segoe UI", Font.BOLD, 16));
 
         bottomSection.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
@@ -212,7 +214,7 @@ public class turistaframe extends JFrame {
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
         modelMyAlquileres = new DefaultTableModel(
-            new String[]{"ID Alquiler", "Fecha", "Hora", "Duración", "Recurso", "Tarifa"}, 0
+            new String[]{"ID Alquiler", "ID Recurso","Fecha", "Hora", "Duración", "Recurso", "Tarifa"}, 0
         ) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -269,7 +271,7 @@ public class turistaframe extends JFrame {
                 return;
         
         try (Connection conn = conexion.getConnection()) {
-            String sql = "SELECT a.IDAlquiler, a.FechaDeInicio, a.HoraDeInicio, a.Duracion, " +
+            String sql = "SELECT a.IDAlquiler,da.IDRecurso, a.FechaDeInicio, a.HoraDeInicio, a.Duracion, " +
                         "r.Recurso, r.TarifaPorHora, r.Estado " +
                         "FROM Alquiler a " +
                         "JOIN DETALLEALQUILER da ON a.IDAlquiler = da.IDAlquiler " +
@@ -283,9 +285,10 @@ public class turistaframe extends JFrame {
             while (rs.next()) {
                 modelMyAlquileres.addRow(new Object[]{
                     rs.getString("IDAlquiler"),
+                      rs.getString("IDRecurso"),
                     rs.getDate("FechaDeInicio"),
                     rs.getTime("HoraDeInicio"),
-                    rs.getInt("Duracion") + " hrs",
+                    rs.getString("Duracion") + " hrs",
                     rs.getString("Recurso"),
                     String.format("S/ %.2f", rs.getDouble("TarifaPorHora"))
                 });
@@ -383,6 +386,14 @@ public class turistaframe extends JFrame {
         return;
     }
 
+    double totalPagar = 0;
+
+            
+    for (CartItem item : cart) {
+        totalPagar += item.tarifaPorHora * item.horas;
+}
+
+
     int confirm = JOptionPane.showConfirmDialog(this,
             "¿Confirmar alquiler?",
             "Confirmar",
@@ -428,9 +439,14 @@ public class turistaframe extends JFrame {
         conn.commit();
 
         JOptionPane.showMessageDialog(this,
-                String.format("¡Alquiler confirmado!\nTotal: S/ %.2f\nID: %s", (double) duracionTotal, idAlquiler),
-                "Éxito",
-                JOptionPane.INFORMATION_MESSAGE);
+        String.format(
+        "¡Alquiler confirmado!\nTotal: S/ %.2f\nID: %s",
+            totalPagar,
+            idAlquiler
+    ),
+    "Éxito",
+        JOptionPane.INFORMATION_MESSAGE
+);
 
         clearCart();
         loadRecursos();
@@ -444,56 +460,38 @@ public class turistaframe extends JFrame {
 }
     
     private void returnProduct() {
-        int selectedRow = tableMyAlquileres.getSelectedRow();
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Selecciona un alquiler");
-            return;
-        }
-        
-        String estado = (String) modelMyAlquileres.getValueAt(selectedRow, 5);
-        if (estado.equals("devuelto")) {
-            JOptionPane.showMessageDialog(this, "Este producto ya fue devuelto");
-            return;
-        }
-        
-        int rentaId = (int) modelMyAlquileres.getValueAt(selectedRow, 0);
-        
-        int confirm = JOptionPane.showConfirmDialog(this,
-            "¿Devolver este producto?",
-            "Confirmar",
-            JOptionPane.YES_NO_OPTION);
-            
-        if (confirm != JOptionPane.YES_OPTION) return;
-        
-        try (Connection conn = conexion.getConnection()) {
-            conn.setAutoCommit(false);
-            
-            // Actualizar estado
-            String sql = "UPDATE Alquiler SET estado = 'devuelto' WHERE id = ?";
-            PreparedStatement pst = conn.prepareStatement(sql);
-            pst.setInt(1, rentaId);
-            pst.executeUpdate();
-            
-            // Restaurar stock
-            String sqlStock = "UPDATE productos p " +
-                             "JOIN renta_detalles rd ON p.id = rd.producto_id " +
-                             "SET p.stock = p.stock + rd.cantidad " +
-                             "WHERE rd.renta_id = ?";
-            PreparedStatement pstStock = conn.prepareStatement(sqlStock);
-            pstStock.setInt(1, rentaId);
-            pstStock.executeUpdate();
-            
-            conn.commit();
-            
-            JOptionPane.showMessageDialog(this, "Producto devuelto exitosamente");
-            loadMyAlquileres();
-            loadRecursos();
-            
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
-        }
+
+    int fila = tableMyAlquileres.getSelectedRow();
+    if (fila == -1) {
+        JOptionPane.showMessageDialog(this, "Selecciona un alquiler");
+        return;
     }
+
+    String idAlquiler = tableMyAlquileres.getValueAt(fila, 0).toString();
+    String idRecurso  = tableMyAlquileres.getValueAt(fila, 1).toString();
+
+    int confirm = JOptionPane.showConfirmDialog(
+        this,
+        "¿Deseas devolver este recurso?",
+        "Confirmar",
+        JOptionPane.YES_NO_OPTION
+    );
+
+    if (confirm != JOptionPane.YES_OPTION) return;
+
+    DetalleAlquilerDAO dao = new DetalleAlquilerDAO();
+
+    if (dao.devolverRecurso(idAlquiler, idRecurso)) {
+        JOptionPane.showMessageDialog(this, "Recurso devuelto correctamente");
+        loadMyAlquileres();
+        loadRecursos();
+    } else {
+        JOptionPane.showMessageDialog(this, "Error al devolver el recurso");
+    }
+}
+
+
+
     
     private void logout() {
         dispose();

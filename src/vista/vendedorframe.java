@@ -290,7 +290,7 @@ public class vendedorframe extends JFrame {
             return;
         }
 
-        int idTurista = rsTurista.getInt("IDTurista");
+        String idTurista = rsTurista.getString("IDTurista");
 
         // Calcular duración promedio
         int duracionTotal = 0;
@@ -316,7 +316,7 @@ public class vendedorframe extends JFrame {
             String sqlDetalle = "INSERT INTO DETALLEALQUILER (IDRecurso, IDTurista, IDAlquiler, IDPromocion) VALUES (?, ?, ?, NULL)";
             PreparedStatement pstDetalle = conn.prepareStatement(sqlDetalle);
             pstDetalle.setString(1, item.idRecurso);
-            pstDetalle.setInt(2, idTurista);
+            pstDetalle.setString(2, idTurista);
             pstDetalle.setString(3, idAlquiler);
             pstDetalle.executeUpdate();
 
