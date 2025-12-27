@@ -26,6 +26,7 @@ public class adminframe extends JFrame {
     private JTable tablaRecursos, tablaUsuarios, tablaTuristas, tablaAlquileres, tablaPromociones;
     private DefaultTableModel modelRecursos, modelUsuarios, modelTuristas, modelAlquileres, modelPromociones;
     private JTabbedPane tabbedPane;
+    private JLabel lblTotalIngresos;
     
     public adminframe(Usuario user) {
         this.currentUser = user;
@@ -272,50 +273,62 @@ public class adminframe extends JFrame {
     // ============================================
     // PANEL DE ALQUILERES MODERNO
     // ============================================
-    private JPanel createAlquileresPanel() {
-        JPanel panel = new JPanel(new BorderLayout(15, 15));
-        panel.setBackground(BG_LIGHT);
-        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-        
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setOpaque(false);
-        
-        JLabel titleLabel = new JLabel("Gestión de Alquileres");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        titleLabel.setForeground(TEXT_PRIMARY);
-        headerPanel.add(titleLabel, BorderLayout.WEST);
-        
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        btnPanel.setOpaque(false);
-        
-        JButton btnDetails = createModernButton("Ver Detalles", INFO, "👁");
-        JButton btnRefresh = createModernButton("Actualizar", PRIMARY, "↻");
-        
-        btnDetails.addActionListener(e -> verDetallesAlquiler());
-        btnRefresh.addActionListener(e -> loadAlquileres());
-        
-        btnPanel.add(btnDetails);
-        btnPanel.add(btnRefresh);
-        
-        headerPanel.add(btnPanel, BorderLayout.EAST);
-        
-        modelAlquileres = new DefaultTableModel(
-            new String[]{"ID", "Turista", "Recurso", "Fecha Inicio", "Hora Inicio", "Duración (hrs)", "Total Aprox."}, 0
-        ) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        
-        tablaAlquileres = createModernTable(modelAlquileres);
-        JScrollPane scrollPane = createModernScrollPane(tablaAlquileres);
-        
-        panel.add(headerPanel, BorderLayout.NORTH);
-        panel.add(scrollPane, BorderLayout.CENTER);
-        
-        return panel;
-    }
+   private JPanel createAlquileresPanel() {
+    JPanel panel = new JPanel(new BorderLayout(15, 15));
+    panel.setBackground(BG_LIGHT);
+    panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+
+    JPanel headerPanel = new JPanel(new BorderLayout());
+    headerPanel.setOpaque(false);
+
+    JLabel titleLabel = new JLabel("Gestión de Alquileres");
+    titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
+    titleLabel.setForeground(TEXT_PRIMARY);
+    headerPanel.add(titleLabel, BorderLayout.WEST);
+
+    // ✅ CREAR PRIMERO EL LABEL
+    lblTotalIngresos = new JLabel("Total Ingresos: S/ 0.00", SwingConstants.CENTER);
+    lblTotalIngresos.setFont(new Font("Segoe UI", Font.BOLD, 16));
+    lblTotalIngresos.setForeground(SUCCESS);
+
+    // ✅ AHORA SÍ SE AGREGA
+    headerPanel.add(lblTotalIngresos, BorderLayout.CENTER);
+
+    JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+    btnPanel.setOpaque(false);
+
+    JButton btnDetails = createModernButton("Ver Detalles", INFO, "👁");
+    JButton btnRefresh = createModernButton("Actualizar", PRIMARY, "↻");
+
+    btnDetails.addActionListener(e -> verDetallesAlquiler());
+    btnRefresh.addActionListener(e -> {
+        loadAlquileres();
+        cargarTotalIngresos(); 
+    });
+
+    btnPanel.add(btnDetails);
+    btnPanel.add(btnRefresh);
+
+    headerPanel.add(btnPanel, BorderLayout.EAST);
+
+    modelAlquileres = new DefaultTableModel(
+        new String[]{"ID", "Turista", "Recurso", "Fecha Inicio", "Hora Inicio", "Duración (hrs)", "Total Aprox."}, 0
+    ) {
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return false;
+        }
+    };
+
+    tablaAlquileres = createModernTable(modelAlquileres);
+    JScrollPane scrollPane = createModernScrollPane(tablaAlquileres);
+
+    panel.add(headerPanel, BorderLayout.NORTH);
+    panel.add(scrollPane, BorderLayout.CENTER);
+
+    return panel;
+}
+
     
     // ============================================
     // PANEL DE PROMOCIONES MODERNO
@@ -1174,6 +1187,34 @@ public class adminframe extends JFrame {
             }
         }
     }
+    private void cargarTotalIngresos() {
+
+    try (Connection conn = conexion.getConnection()) {
+
+        String sql = """
+            SELECT SUM(r.TarifaPorHora * a.Duracion) AS Total
+            FROM ALQUILER a
+            JOIN DETALLEALQUILER d ON a.IDAlquiler = d.IDAlquiler
+            JOIN RECURSOS r ON d.IDRecurso = r.IDRecurso
+        """;
+
+        PreparedStatement pst = conn.prepareStatement(sql);
+        ResultSet rs = pst.executeQuery();
+
+        if (rs.next()) {
+            double total = rs.getDouble("Total");
+            lblTotalIngresos.setText(
+                    String.format("Total Ingresos: S/ %.2f", total)
+            );
+        }
+
+    } catch (SQLException e) {
+        lblTotalIngresos.setText("Total Ingresos: ERROR");
+    }
+}
+
+    
+    
     
     private void loadData() {
         loadRecursos();
@@ -1181,6 +1222,8 @@ public class adminframe extends JFrame {
         loadTuristas();
         loadAlquileres();
         loadPromociones();
+        cargarTotalIngresos();
+
     }
     
     private void logout() {
