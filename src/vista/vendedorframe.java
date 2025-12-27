@@ -171,7 +171,7 @@ public class vendedorframe extends JFrame {
         JScrollPane scrollPane = createModernScrollPane(tablaRecursos);
         
         // Botón agregar
-        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
         bottomPanel.setOpaque(false);
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
         
@@ -180,8 +180,15 @@ public class vendedorframe extends JFrame {
         btnAddToCart.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnAddToCart.addActionListener(e -> addToCart());
         
+        JButton btnCatalogo = createModernButton("📚 Catálogo", INFO, "");
+        btnCatalogo.setPreferredSize(new Dimension(180, 42));
+        btnCatalogo.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnCatalogo.addActionListener(e -> {
+            new CatalogoFrame().setVisible(true);
+        });
+
         bottomPanel.add(btnAddToCart);
-        
+        bottomPanel.add(btnCatalogo);
         panel.add(headerPanel, BorderLayout.NORTH);
         panel.add(scrollPane, BorderLayout.CENTER);
         panel.add(bottomPanel, BorderLayout.SOUTH);
