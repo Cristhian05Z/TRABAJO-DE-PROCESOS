@@ -2,6 +2,8 @@ package vista;
 
 import javax.swing.*;
 import javax.swing.table.*;
+
+
 import DAO.DetalleAlquilerDAO;
 import database.conexion;
 import modelo.Usuario;
@@ -10,6 +12,9 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
 
 public class turistaframe extends JFrame {
     
@@ -86,6 +91,7 @@ public class turistaframe extends JFrame {
         
         loadRecursos();
         loadMyAlquileres();
+        initTableClick();
     }
     
     // ============================================
@@ -538,6 +544,48 @@ public class turistaframe extends JFrame {
                 JOptionPane.ERROR_MESSAGE);
         }
     }
+    private void initTableClick() {
+
+    tablaRecursos.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+
+            if (e.getClickCount() == 2) {
+
+                int row = tablaRecursos.getSelectedRow();
+
+                String idRecurso = tablaRecursos.getValueAt(row, 0).toString();
+                String nombre = tablaRecursos.getValueAt(row, 1).toString();
+                double tarifa = Double.parseDouble(
+                        tablaRecursos.getValueAt(row, 2).toString()
+                );
+
+                String rutaImagen = "/imagenes/" +
+                        nombre.toLowerCase().replace(" ", "_") + ".jpg";
+
+                mostrarImagenRecurso(nombre, tarifa, rutaImagen);
+            }
+        }
+    });
+}
+private void mostrarImagenRecurso(String nombre, double tarifa, String rutaImagen) {
+
+    ImageIcon icon = new ImageIcon(
+            getClass().getResource(rutaImagen)
+    );
+
+    JLabel lblImagen = new JLabel(icon);
+    lblImagen.setHorizontalAlignment(JLabel.CENTER);
+
+    JOptionPane.showMessageDialog(
+            this,
+            lblImagen,
+            nombre + " - S/ " + tarifa + " por hora",
+            JOptionPane.PLAIN_MESSAGE
+    );
+}
+
+
     
     private void addToCart() {
         int selectedRow = tablaRecursos.getSelectedRow();

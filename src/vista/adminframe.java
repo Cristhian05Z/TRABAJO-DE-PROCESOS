@@ -128,7 +128,7 @@ public class adminframe extends JFrame {
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         btnPanel.setOpaque(false);
         
-        JButton btnAdd = createModernButton("Nuevo Recurso", SUCCESS, "+");
+        JButton btnAdd = createModernButton("Agregar Recurso", SUCCESS, "+");
         JButton btnEdit = createModernButton("Editar", INFO, "✎");
         JButton btnDelete = createModernButton("Eliminar", DANGER, "🗑");
         JButton btnRefresh = createModernButton("Actualizar", PRIMARY, "↻");

@@ -211,7 +211,7 @@ public class vendedorframe extends JFrame {
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         btnPanel.setOpaque(false);
         
-        JButton btnRemove = createModernButton("Quitar", DANGER, "✕");
+        JButton btnRemove = createModernButton("Eliminar", DANGER, "✕");
         JButton btnClear = createModernButton("Limpiar", WARNING, "🗑");
         
         btnRemove.setPreferredSize(new Dimension(110, 36));
