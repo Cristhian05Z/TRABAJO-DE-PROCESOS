@@ -121,12 +121,20 @@ public class turistaframe extends JFrame {
         leftPanel.add(welcomeLabel);
         
         // Botón cerrar sesión
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        rightPanel.setOpaque(false);
+
+        JButton btnCatalogo = createModernButton("Catálogo", INFO, "🖼");
+        btnCatalogo.addActionListener(e -> new CatalogoFrame());
+
         JButton btnLogout = createModernButton("Cerrar Sesión", DANGER, "⎋");
         btnLogout.addActionListener(e -> logout());
-        
+
+        rightPanel.add(btnCatalogo);
+        rightPanel.add(btnLogout);
+
         header.add(leftPanel, BorderLayout.WEST);
-        header.add(btnLogout, BorderLayout.EAST);
-        
+        header.add(rightPanel, BorderLayout.EAST);
         return header;
     }
     
