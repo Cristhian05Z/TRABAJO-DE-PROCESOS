@@ -361,7 +361,7 @@ public class adminframe extends JFrame {
     private void loadUsuarios() {
         modelUsuarios.setRowCount(0);
         try (Connection conn = conexion.getConnection()) {
-            String sql = "SELECT IDUsuario, TipoDeUsuario, Nombre FROM USUARIO ORDER BY Nombre";
+            String sql = "SELECT IDUsuario, TipoDeUsuario, Nombre FROM USUARIO ORDER BY IDUsuario";
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
             
@@ -489,7 +489,7 @@ public class adminframe extends JFrame {
     private void loadTuristas() {
         modelTuristas.setRowCount(0);
         try (Connection conn = conexion.getConnection()) {
-            String sql = "SELECT * FROM TURISTAA ORDER BY Nombre, Apellido";
+            String sql = "SELECT * FROM TURISTAA ORDER BY IDTurista";
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
             
@@ -701,17 +701,19 @@ public class adminframe extends JFrame {
     try (Connection conn = conexion.getConnection()) {
 
         String sql =
-            "SELECT a.IDAlquiler, " +
-            "u.Nombre AS Turista, " +
-            "r.Recurso, " +
-            "a.FechaDeInicio, " +
-            "a.HoraDeInicio, " +
-            "a.Duracion, " +
-            "r.TarifaPorHora * a.Duracion AS Total " +
-            "FROM ALQUILER a " +
-            "JOIN DETALLEALQUILER d ON a.IDAlquiler = d.IDAlquiler " +
-            "JOIN USUARIO u ON d.IDTurista = u.IDUsuario " +
-            "JOIN RECURSOS r ON d.IDRecurso = r.IDRecurso";
+                "SELECT a.IDAlquiler, " +
+                "t.Nombre AS Turista, " +
+                "r.Recurso, " +
+                "a.FechaDeInicio, " +
+                "a.HoraDeInicio, " +
+                "a.Duracion, " +
+                "r.TarifaPorHora * a.Duracion AS Total " +
+                "FROM ALQUILER a " +
+                "LEFT JOIN DETALLEALQUILER d ON a.IDAlquiler = d.IDAlquiler " +
+                "LEFT JOIN TURISTAA t ON d.IDTurista = t.IDTurista " +   
+                "LEFT JOIN RECURSOS r ON d.IDRecurso = r.IDRecurso " +
+                "ORDER BY a.IDAlquiler";
+
 
         PreparedStatement pst = conn.prepareStatement(sql); 
         ResultSet rs = pst.executeQuery();
@@ -866,24 +868,32 @@ public class adminframe extends JFrame {
     }
     
     private void loadPromociones() {
-        modelPromociones.setRowCount(0);
-        try (Connection conn = conexion.getConnection()) {
-            String sql = "SELECT * FROM PROMOCION ORDER BY PorcentajeDescuento DESC";
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
-            
-            while (rs.next()) {
-                modelPromociones.addRow(new Object[]{
-                    rs.getString("IDPromocion"),  // ← STRING (era getInt)
-                    rs.getString("PorcentajeDescuento") + "%",
-                    rs.getString("Condiciones")
-                });
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error al cargar promociones: " + e.getMessage());
+    modelPromociones.setRowCount(0);
+
+    try (Connection conn = conexion.getConnection()) {
+
+        String sql =
+            "SELECT * FROM PROMOCION " +
+            "ORDER BY CAST(SUBSTRING(IDPromocion, 2, LEN(IDPromocion)) AS INT) ASC";
+
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery(sql);
+
+        while (rs.next()) {
+            modelPromociones.addRow(new Object[]{
+                rs.getString("IDPromocion"),
+                rs.getString("PorcentajeDescuento") + "%",
+                rs.getString("Condiciones")
+            });
         }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this,
+            "Error al cargar promociones: " + e.getMessage());
     }
+}
+
     
     private void addPromocion() {
         JTextField txtDescuento = new JTextField();

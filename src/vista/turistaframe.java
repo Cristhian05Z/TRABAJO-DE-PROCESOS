@@ -43,7 +43,13 @@ public class turistaframe extends JFrame {
     
     public turistaframe(Usuario user) {
         this.currentUser = user;
-        this.idTurista = user.getIDUsuario();
+        this.idTurista = obtenerIDTuristaPorNombre(user.getNombre());
+         if (idTurista == null) {
+        JOptionPane.showMessageDialog(this,
+            "No se encontró el turista en la base de datos");
+        return;
+    }
+
         
         setTitle("Panel Turista - " + user.getNombre());
         setSize(1000, 650);
@@ -296,6 +302,7 @@ public class turistaframe extends JFrame {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        
     }
     
     private void addToCart() {
@@ -319,10 +326,10 @@ public class turistaframe extends JFrame {
         updateCartTable();
     }
     private String generarNuevoIDAlquiler(Connection conn) throws SQLException {
-    String prefijo = "A";  // Prefijo para alquileres
+    String prefijo = "A";  
     int siguienteNumero = 1;
     
-    // Obtener el último IDAlquiler existente
+    
     String sql = "SELECT TOP 1 IDAlquiler FROM ALQUILER WHERE IDAlquiler LIKE ? ORDER BY IDAlquiler DESC";
     PreparedStatement pst = conn.prepareStatement(sql);
     pst.setString(1, prefijo + "%");
@@ -331,13 +338,13 @@ public class turistaframe extends JFrame {
     if (rs.next()) {
         String ultimoID = rs.getString("IDAlquiler");
         
-        // Extraer número: "A005" → "005" → 5
+        
         String numeroStr = ultimoID.substring(prefijo.length());
         int numero = Integer.parseInt(numeroStr);
         siguienteNumero = numero + 1;
     }
     
-    // Formatear con ceros: 6 → "006", 12 → "012"
+    
     return String.format("%s%03d", prefijo, siguienteNumero);
 }
     
@@ -458,6 +465,22 @@ public class turistaframe extends JFrame {
         JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
     }
 }
+    private String obtenerIDTuristaPorNombre(String nombre) {
+    try (Connection conn = conexion.getConnection()) {
+        String sql = "SELECT IDTurista FROM TURISTAA WHERE UPPER(Nombre) = UPPER(?)";
+        PreparedStatement pst = conn.prepareStatement(sql);
+        pst.setString(1, nombre);
+
+        ResultSet rs = pst.executeQuery();
+        if (rs.next()) {
+            return rs.getString("IDTurista");
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return null;
+}
+
     
     private void returnProduct() {
 
