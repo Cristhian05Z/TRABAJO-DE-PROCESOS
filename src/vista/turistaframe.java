@@ -5,7 +5,9 @@ import javax.swing.table.*;
 
 
 import DAO.DetalleAlquilerDAO;
+import DAO.PromocionDAO;
 import database.conexion;
+import modelo.Promocion;
 import modelo.Usuario;
 import java.awt.*;
 import java.sql.*;
@@ -179,7 +181,18 @@ public class turistaframe extends JFrame {
         splitPane.setBackground(BG_DARK);
         splitPane.setBorder(null);
         
-        mainPanel.add(splitPane, BorderLayout.CENTER);
+        // Panel derecho - Promociones
+        JPanel promoPanel = createPromocionesPanel();
+
+// Contenedor central
+        JPanel centerPanel = new JPanel(new BorderLayout(15, 0));
+        centerPanel.setOpaque(false);
+
+        centerPanel.add(splitPane, BorderLayout.CENTER);
+        centerPanel.add(promoPanel, BorderLayout.EAST);
+
+        mainPanel.add(centerPanel, BorderLayout.CENTER);
+
         
         return mainPanel;
     }
@@ -403,6 +416,52 @@ public class turistaframe extends JFrame {
         
         return panel;
     }
+    // ============================================
+// PANEL DE PROMOCIONES (SOLO VISUAL)
+// ============================================
+private JPanel createPromocionesPanel() {
+
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setBackground(BG_CARD);
+    panel.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(INFO, 2),
+        BorderFactory.createEmptyBorder(15, 15, 15, 15)
+    ));
+
+    JLabel title = new JLabel("🎁 Promociones");
+    title.setFont(new Font("Segoe UI", Font.BOLD, 18));
+    title.setForeground(TEXT_PRIMARY);
+    title.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+    panel.add(title);
+    panel.add(Box.createVerticalStrut(15));
+
+    panel.add(crearPromoLabel("⏱️ Por horas"));
+    panel.add(crearPromoLabel("• 3 horas o más → 10% OFF"));
+    panel.add(crearPromoLabel("• 5 horas o más → 15% OFF"));
+    panel.add(crearPromoLabel("• 8 horas o más → 20% OFF"));
+
+    panel.add(Box.createVerticalStrut(15));
+
+    panel.add(crearPromoLabel("🚜 Por cantidad"));
+    panel.add(crearPromoLabel("• 4 recursos o más → 15% OFF"));
+    panel.add(crearPromoLabel("• 6 recursos o más → 25% OFF"));
+
+    return panel;
+}
+
+
+
+private JLabel crearPromoLabel(String texto) {
+    JLabel lbl = new JLabel(texto);
+    lbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+    lbl.setForeground(TEXT_SECONDARY);
+    lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+    return lbl;
+}
+
+    
     
     // ============================================
     // COMPONENTES REUTILIZABLES
@@ -702,6 +761,28 @@ private void mostrarImagenRecurso(String nombre, double tarifa, String rutaImage
         
         return String.format("%s%03d", prefijo, siguienteNumero);
     }
+
+    private Promocion determinarPromocion(int horasTotales, int cantidadRecursos) {
+    try {
+        PromocionDAO dao = new PromocionDAO();
+
+        if (cantidadRecursos >= 6)
+            return dao.obtenerPorId("P005");
+        if (cantidadRecursos >= 4)
+            return dao.obtenerPorId("P004");
+        if (horasTotales >= 8)
+            return dao.obtenerPorId("P003");
+        if (horasTotales >= 5)
+            return dao.obtenerPorId("P002");
+        if (horasTotales >= 3)
+            return dao.obtenerPorId("P001");
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return null;
+}
+
     
     private void processAlquiler() {
         if (cart.isEmpty()) {
@@ -720,16 +801,49 @@ private void mostrarImagenRecurso(String nombre, double tarifa, String rutaImage
             return;
         }
 
-        double totalPagar = 0;
-        for (CartItem item : cart)
-            totalPagar += item.tarifaPorHora * item.horas;
+        int horasTotales = 0;
+        double totalBruto = 0;
 
-        int confirm = JOptionPane.showConfirmDialog(this,
-            String.format("¿Confirmar alquiler por un total de S/ %.2f?", totalPagar),
-            "Confirmar Alquiler",
-            JOptionPane.YES_NO_OPTION);
+        for (CartItem item : cart) {
+                horasTotales += item.horas;
+                totalBruto += item.tarifaPorHora * item.horas;
+            }
 
-        if (confirm != JOptionPane.YES_OPTION) return;
+        int cantidadRecursos = cart.size();
+
+// 👉 AQUÍ SÍ SE USA TU MÉTODO
+        Promocion promocionAplicada =
+        determinarPromocion(horasTotales, cantidadRecursos);
+
+            double descuento = 0;
+               if (promocionAplicada != null) {
+                descuento = totalBruto * (promocionAplicada.getPorcentajeDescuento() / 100.0);
+            }
+
+        double totalPagar = totalBruto - descuento;
+
+            String mensajeConfirmacion =
+        "Total bruto: S/ " + String.format("%.2f", totalBruto);
+
+if (promocionAplicada != null) {
+    mensajeConfirmacion +=
+            "\nPromoción aplicada: " + promocionAplicada.getCondiciones() +
+            "\nDescuento: " + promocionAplicada.getPorcentajeDescuento() + "%";
+}
+
+mensajeConfirmacion +=
+        "\n\nTotal a pagar: S/ " + String.format("%.2f", totalPagar) +
+        "\n\n¿Confirmar alquiler?";
+
+int confirm = JOptionPane.showConfirmDialog(
+        this,
+        mensajeConfirmacion,
+        "Confirmar Alquiler",
+        JOptionPane.YES_NO_OPTION
+);
+
+if (confirm != JOptionPane.YES_OPTION) return;
+
 
         try (Connection conn = conexion.getConnection()) {
             conn.setAutoCommit(false);
@@ -758,7 +872,7 @@ private void mostrarImagenRecurso(String nombre, double tarifa, String rutaImage
                 String sqlDetalle = """
                     INSERT INTO DETALLEALQUILER
                     (IDDetalleAlquiler, IDRecurso, IDTurista, IDAlquiler, IDPromocion)
-                    VALUES (?, ?, ?, ?, NULL)
+                    VALUES (?, ?, ?, ?, ?)
                 """;
 
                 PreparedStatement pstDetalle = conn.prepareStatement(sqlDetalle);
@@ -766,22 +880,36 @@ private void mostrarImagenRecurso(String nombre, double tarifa, String rutaImage
                 pstDetalle.setString(2, item.idRecurso);
                 pstDetalle.setString(3, idTurista);
                 pstDetalle.setString(4, idAlquiler);
+                pstDetalle.setString(5,promocionAplicada != null? promocionAplicada.getIDPromocion(): null
+);
                 pstDetalle.executeUpdate();
             }
 
             conn.commit();
 
-            JOptionPane.showMessageDialog(this,
-                String.format(
-                    "✅ ¡Alquiler confirmado exitosamente!\n\n" +
-                    "ID Alquiler: %s\n" +
-                    "Total: S/ %.2f\n" +
-                    "Items: %d recurso(s)\n\n" +
-                    "¡Disfruta tu experiencia!",
-                    idAlquiler, totalPagar, cart.size()
-                ),
-                "Éxito",
-                JOptionPane.INFORMATION_MESSAGE);
+            String mensajeFinal =
+        "✅ ¡Alquiler confirmado exitosamente!\n\n" +
+        "ID Alquiler: " + idAlquiler +
+        "\nItems: " + cart.size() +
+        "\nTotal bruto: S/ " + String.format("%.2f", totalBruto);
+
+if (promocionAplicada != null) {
+    mensajeFinal +=
+            "\nPromoción aplicada: " + promocionAplicada.getCondiciones() +
+            "\nDescuento: " + promocionAplicada.getPorcentajeDescuento() + "%";
+}
+
+mensajeFinal +=
+        "\n\nTotal pagado: S/ " + String.format("%.2f", totalPagar) +
+        "\n\n¡Disfruta tu experiencia!";
+
+JOptionPane.showMessageDialog(
+        this,
+        mensajeFinal,
+        "Éxito",
+        JOptionPane.INFORMATION_MESSAGE
+);
+
 
             clearCart();
             loadRecursos();

@@ -97,4 +97,45 @@ public class PromocionDAO {
         promocion.setCondiciones(rs.getString("Condiciones"));
         return promocion;
     }
+
+
+    public Promocion obtenerPromocionAplicable(double total, int horasTotales) throws SQLException {
+    String sql = "SELECT * FROM PROMOCION ORDER BY PorcentajeDescuento DESC";
+
+    try (Connection conn = conexion.getConnection();
+         Statement st = conn.createStatement();
+         ResultSet rs = st.executeQuery(sql)) {
+
+        while (rs.next()) {
+            Promocion promo = mapearPromocion(rs);
+
+            if (cumpleCondicion(promo.getCondiciones(), total, horasTotales)) {
+                return promo; // aplica la mejor promoción
+            }
+        }
+    }
+    return null;
 }
+
+        private boolean cumpleCondicion(String condicion, double total, int horas) {
+    if (condicion == null || condicion.isEmpty()) return false;
+
+    condicion = condicion.toUpperCase().replace(" ", "");
+
+    if (condicion.startsWith("HORAS>=")) {
+        int minHoras = Integer.parseInt(condicion.split(">=")[1]);
+        return horas >= minHoras;
+    }
+
+    if (condicion.startsWith("MONTO>=")) {
+        double montoMin = Double.parseDouble(condicion.split(">=")[1]);
+        return total >= montoMin;
+    }
+
+    return false;
+}
+
+
+}
+
+    

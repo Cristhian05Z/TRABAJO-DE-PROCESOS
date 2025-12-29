@@ -286,12 +286,12 @@ public class adminframe extends JFrame {
     titleLabel.setForeground(TEXT_PRIMARY);
     headerPanel.add(titleLabel, BorderLayout.WEST);
 
-    // ✅ CREAR PRIMERO EL LABEL
+    
     lblTotalIngresos = new JLabel("Total Ingresos: S/ 0.00", SwingConstants.CENTER);
     lblTotalIngresos.setFont(new Font("Segoe UI", Font.BOLD, 16));
     lblTotalIngresos.setForeground(SUCCESS);
 
-    // ✅ AHORA SÍ SE AGREGA
+
     headerPanel.add(lblTotalIngresos, BorderLayout.CENTER);
 
     JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));

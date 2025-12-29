@@ -2,8 +2,12 @@ package vista;
 
 import javax.swing.*;
 import javax.swing.table.*;
+
+import DAO.PromocionDAO;
+
 import javax.swing.border.*;
 import database.conexion;
+import modelo.Promocion;
 import modelo.Usuario;
 import java.awt.*;
 import java.sql.*;
@@ -12,6 +16,10 @@ import java.time.LocalTime;
 import java.util.*;
 
 public class vendedorframe extends JFrame {
+
+    private Promocion promocionAplicada;
+    private PromocionDAO promocionDAO = new PromocionDAO();
+
     
     // Paleta de colores oscuros moderna
     private static final Color PRIMARY = new Color(139, 92, 246); // Violeta
@@ -281,8 +289,10 @@ public class vendedorframe extends JFrame {
         btnProcessPanel.setOpaque(false);
         btnProcessPanel.add(btnProcess);
         
-        bottomPanel.add(totalPanel, BorderLayout.NORTH);
+        bottomPanel.add(createPromocionesPanel(), BorderLayout.NORTH);
+        bottomPanel.add(totalPanel, BorderLayout.CENTER);
         bottomPanel.add(btnProcessPanel, BorderLayout.SOUTH);
+
         
         panel.add(headerPanel, BorderLayout.NORTH);
         panel.add(scrollPane, BorderLayout.CENTER);
@@ -490,22 +500,45 @@ public class vendedorframe extends JFrame {
     }
     
     private void updateCartTable() {
-        modelCart.setRowCount(0);
-        double total = 0;
-        
-        for (CartItem item : cart) {
-            double subtotal = item.tarifaPorHora * item.horas;
-            total += subtotal;
-            modelCart.addRow(new Object[]{
-                item.nombre,
-                String.format("S/ %.2f", item.tarifaPorHora),
-                item.horas + " hrs",
-                String.format("S/ %.2f", subtotal)
-            });
-        }
-        
+    modelCart.setRowCount(0);
+
+    double total = 0;
+    int horasTotales = 0;
+
+    for (CartItem item : cart) {
+        double subtotal = item.tarifaPorHora * item.horas;
+        total += subtotal;
+        horasTotales += item.horas;
+
+        modelCart.addRow(new Object[]{
+            item.nombre,
+            String.format("S/ %.2f", item.tarifaPorHora),
+            item.horas + " hrs",
+            String.format("S/ %.2f", subtotal)
+        });
+    }
+
+    // 🔥 BUSCAR PROMOCIÓN AUTOMÁTICA
+    try {
+        promocionAplicada = promocionDAO.obtenerPromocionAplicable(total, horasTotales);
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    if (promocionAplicada != null) {
+        double descuento = total * (promocionAplicada.getPorcentajeDescuento() / 100);
+        total -= descuento;
+
+        lblTotal.setText(
+            String.format("S/ %.2f  (-%s%%)",
+                total,
+                promocionAplicada.getPorcentajeDescuento())
+        );
+    } else {
         lblTotal.setText(String.format("S/ %.2f", total));
     }
+}
+
     
     private String generarNuevoIDAlquiler(Connection conn) throws SQLException {
         String prefijo = "A";
@@ -525,112 +558,146 @@ public class vendedorframe extends JFrame {
         
         return String.format("%s%03d", prefijo, siguienteNumero);
     }
+
+    
     
     private void processRental() {
-        if (cart.isEmpty()) {
-            JOptionPane.showMessageDialog(this, 
-                "El carrito está vacío",
-                "Aviso",
-                JOptionPane.WARNING_MESSAGE);
+    if (cart.isEmpty()) {
+        JOptionPane.showMessageDialog(this,
+            "El carrito está vacío",
+            "Aviso",
+            JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+
+    String dni = JOptionPane.showInputDialog(this,
+        "Ingrese el DNI del Turista:",
+        "Datos del Cliente",
+        JOptionPane.QUESTION_MESSAGE);
+
+    if (dni == null || dni.trim().isEmpty()) return;
+
+    try (Connection conn = conexion.getConnection()) {
+        conn.setAutoCommit(false);
+
+        // 🔎 Buscar turista
+        String sqlTurista = "SELECT IDTurista FROM TURISTAA WHERE DNI = ?";
+        PreparedStatement pstTurista = conn.prepareStatement(sqlTurista);
+        pstTurista.setString(1, dni);
+        ResultSet rsTurista = pstTurista.executeQuery();
+
+        if (!rsTurista.next()) {
+            JOptionPane.showMessageDialog(this,
+                "Turista no encontrado con DNI: " + dni,
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+            conn.rollback();
             return;
         }
 
-        String dni = JOptionPane.showInputDialog(this, 
-            "Ingrese el DNI del Turista:",
-            "Datos del Cliente",
-            JOptionPane.QUESTION_MESSAGE);
-        
-        if (dni == null || dni.trim().isEmpty()) return;
+        String idTurista = rsTurista.getString("IDTurista");
 
-        try (Connection conn = conexion.getConnection()) {
-            conn.setAutoCommit(false);
+        // ⏱️ Calcular duración promedio
+        int duracionTotal = 0;
+        for (CartItem item : cart) duracionTotal += item.horas;
+        int duracionPromedio = duracionTotal / cart.size();
 
-            String sqlTurista = "SELECT IDTurista FROM TURISTAA WHERE DNI = ?";
-            PreparedStatement pstTurista = conn.prepareStatement(sqlTurista);
-            pstTurista.setString(1, dni);
-            ResultSet rsTurista = pstTurista.executeQuery();
+        // 🆔 Generar ID alquiler
+        String idAlquiler = generarNuevoIDAlquiler(conn);
 
-            if (!rsTurista.next()) {
-                JOptionPane.showMessageDialog(this, 
-                    "Turista no encontrado con DNI: " + dni,
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-                conn.rollback();
-                return;
-            }
+        // 🧾 Insertar alquiler
+        String sqlAlquiler = """
+            INSERT INTO ALQUILER (IDAlquiler, FechaDeInicio, HoraDeInicio, Duracion)
+            VALUES (?, ?, ?, ?)
+        """;
 
-            String idTurista = rsTurista.getString("IDTurista");
+        PreparedStatement pstAlquiler = conn.prepareStatement(sqlAlquiler);
+        pstAlquiler.setString(1, idAlquiler);
+        pstAlquiler.setDate(2, java.sql.Date.valueOf(LocalDate.now()));
+        pstAlquiler.setTime(3, Time.valueOf(LocalTime.now()));
+        pstAlquiler.setInt(4, duracionPromedio);
+        pstAlquiler.executeUpdate();
 
-            int duracionTotal = 0;
-            for (CartItem item : cart) duracionTotal += item.horas;
-            int duracionPromedio = duracionTotal / cart.size();
+        // 🎁 ID promoción (puede ser null)
+        String idPromocion = (promocionAplicada != null)
+                ? promocionAplicada.getIDPromocion()
+                : null;
 
-            String idAlquiler = generarNuevoIDAlquiler(conn);
+        // 📦 Insertar detalles
+        for (CartItem item : cart) {
+            String idDetalle = generarNuevoIDDetalleAlquiler(conn);
 
-            String sqlAlquiler = """
-                INSERT INTO ALQUILER (IDAlquiler, FechaDeInicio, HoraDeInicio, Duracion)
-                VALUES (?, ?, ?, ?)
+            String sqlDetalle = """
+                INSERT INTO DETALLEALQUILER
+                (IDDetalleAlquiler, IDRecurso, IDTurista, IDAlquiler, IDPromocion)
+                VALUES (?, ?, ?, ?, ?)
             """;
 
-            PreparedStatement pstAlquiler = conn.prepareStatement(sqlAlquiler);
-            pstAlquiler.setString(1, idAlquiler);
-            pstAlquiler.setDate(2, java.sql.Date.valueOf(LocalDate.now()));
-            pstAlquiler.setTime(3, Time.valueOf(LocalTime.now()));
-            pstAlquiler.setInt(4, duracionPromedio);
-            pstAlquiler.executeUpdate();
+            PreparedStatement pstDetalle = conn.prepareStatement(sqlDetalle);
+            pstDetalle.setString(1, idDetalle);
+            pstDetalle.setString(2, item.idRecurso);
+            pstDetalle.setString(3, idTurista);
+            pstDetalle.setString(4, idAlquiler);
+            pstDetalle.setString(5, idPromocion);
+            pstDetalle.executeUpdate();
 
-            for (CartItem item : cart) {
-                String idDetalle = generarNuevoIDDetalleAlquiler(conn);
-
-                String sqlDetalle = """
-                    INSERT INTO DETALLEALQUILER
-                    (IDDetalleAlquiler, IDRecurso, IDTurista, IDAlquiler, IDPromocion)
-                    VALUES (?, ?, ?, ?, NULL)
-                """;
-
-                PreparedStatement pstDetalle = conn.prepareStatement(sqlDetalle);
-                pstDetalle.setString(1, idDetalle);
-                pstDetalle.setString(2, item.idRecurso);
-                pstDetalle.setString(3, idTurista);
-                pstDetalle.setString(4, idAlquiler);
-                pstDetalle.executeUpdate();
-
-                String sqlEstado = "UPDATE RECURSOS SET Estado='alquilado' WHERE IDRecurso=?";
-                PreparedStatement pstEstado = conn.prepareStatement(sqlEstado);
-                pstEstado.setString(1, item.idRecurso);
-                pstEstado.executeUpdate();
-            }
-
-            conn.commit();
-
-            double total = 0;
-            for (CartItem item : cart) {
-                total += item.tarifaPorHora * item.horas;
-            }
-
-            JOptionPane.showMessageDialog(this,
-                String.format(
-                    "✅ ¡Alquiler procesado exitosamente!\n\n" +
-                    "ID Alquiler: %s\n" +
-                    "Cliente: DNI %s\n" +
-                    "Total: S/ %.2f\n" +
-                    "Items: %d recurso(s)",
-                    idAlquiler, dni, total, cart.size()
-                ),
-                "Éxito",
-                JOptionPane.INFORMATION_MESSAGE);
-
-            clearCart();
-            loadProducts();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, 
-                "Error al procesar el alquiler:\n" + e.getMessage(),
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
+            // 🔄 Actualizar estado recurso
+            String sqlEstado = "UPDATE RECURSOS SET Estado='alquilado' WHERE IDRecurso=?";
+            PreparedStatement pstEstado = conn.prepareStatement(sqlEstado);
+            pstEstado.setString(1, item.idRecurso);
+            pstEstado.executeUpdate();
         }
+
+        conn.commit();
+
+        // 💰 Calcular total
+        double total = 0;
+        for (CartItem item : cart) {
+            total += item.tarifaPorHora * item.horas;
+        }
+
+        // 🪄 Texto promoción
+        String promoTexto;
+        if (promocionAplicada != null) {
+            promoTexto = String.format(
+                "%s%% (%s)",
+                promocionAplicada.getPorcentajeDescuento(),
+                promocionAplicada.getCondiciones()
+            );
+        } else {
+            promoTexto = "Ninguna";
+        }
+
+        // ✅ Mensaje final
+        JOptionPane.showMessageDialog(this,
+            String.format(
+                "✅ ¡Alquiler procesado exitosamente!\n\n" +
+                "ID Alquiler: %s\n" +
+                "Cliente: DNI %s\n" +
+                "Promoción aplicada: %s\n" +
+                "Total final: S/ %.2f\n" +
+                "Items: %d recurso(s)",
+                idAlquiler,
+                dni,
+                promoTexto,
+                total,
+                cart.size()
+            ),
+            "Éxito",
+            JOptionPane.INFORMATION_MESSAGE);
+
+        clearCart();
+        loadProducts();
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this,
+            "Error al procesar el alquiler:\n" + e.getMessage(),
+            "Error",
+            JOptionPane.ERROR_MESSAGE);
     }
+}
+
 
     private String generarNuevoIDDetalleAlquiler(Connection conn) throws SQLException {
         String prefijo = "D";
@@ -655,6 +722,39 @@ public class vendedorframe extends JFrame {
 
         return String.format("%s%03d", prefijo, siguienteNumero);
     }
+
+
+    private JPanel createPromocionesPanel() {
+    JPanel panel = new JPanel(new GridLayout(0, 1, 8, 8));
+    panel.setBackground(BG_HOVER);
+    panel.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(INFO, 2),
+            "🎁 Promociones Disponibles",
+            TitledBorder.LEFT,
+            TitledBorder.TOP,
+            new Font("Segoe UI", Font.BOLD, 14),
+            TEXT_PRIMARY
+        ),
+        BorderFactory.createEmptyBorder(10, 10, 10, 10)
+    ));
+
+    panel.add(createPromoLabel("⏱️ Más de 3 horas → 5% de descuento"));
+    panel.add(createPromoLabel("⏱️ Más de 5 horas → 10% de descuento"));
+    panel.add(createPromoLabel("⏱️ Más de 8 horas → 15% de descuento"));
+    panel.add(createPromoLabel("🏖️ 4 o más recursos → 8% de descuento"));
+    panel.add(createPromoLabel("🏖️ 6 o más recursos → 12% de descuento"));
+
+    return panel;
+}
+
+private JLabel createPromoLabel(String text) {
+    JLabel lbl = new JLabel(text);
+    lbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+    lbl.setForeground(TEXT_SECONDARY);
+    return lbl;
+}
+
     
     private void logout() {
         int confirm = JOptionPane.showConfirmDialog(this,
