@@ -86,37 +86,74 @@ public class vendedorframe extends JFrame {
     // HEADER MODERNO OSCURO
     // ============================================
     private JPanel createModernHeader() {
-        JPanel header = new JPanel(new BorderLayout(20, 0));
-        header.setBackground(BG_CARD);
-        header.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 0, 2, 0, PRIMARY),
-            BorderFactory.createEmptyBorder(20, 30, 20, 30)
-        ));
-        
-        // Lado izquierdo
-        JPanel leftPanel = new JPanel(new GridLayout(2, 1, 0, 5));
-        leftPanel.setOpaque(false);
-        
-        JLabel titleLabel = new JLabel("💼 Panel de Ventas");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        titleLabel.setForeground(TEXT_PRIMARY);
-        
-        JLabel welcomeLabel = new JLabel("Vendedor: " + currentUser.getNombre());
-        welcomeLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        welcomeLabel.setForeground(TEXT_SECONDARY);
-        
-        leftPanel.add(titleLabel);
-        leftPanel.add(welcomeLabel);
-        
-        // Botón cerrar sesión
-        JButton btnLogout = createModernButton("Cerrar Sesión", DANGER, "⎋");
-        btnLogout.addActionListener(e -> logout());
-        
-        header.add(leftPanel, BorderLayout.WEST);
-        header.add(btnLogout, BorderLayout.EAST);
-        
-        return header;
-    }
+
+    JPanel header = new JPanel(new BorderLayout(20, 0));
+    header.setBackground(BG_CARD);
+    header.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createMatteBorder(0, 0, 2, 0, PRIMARY),
+        BorderFactory.createEmptyBorder(20, 30, 20, 30)
+    ));
+
+    // =========================
+    // LADO IZQUIERDO (TÍTULO)
+    // =========================
+    JPanel leftPanel = new JPanel(new GridLayout(2, 1, 0, 5));
+    leftPanel.setOpaque(false);
+
+    JLabel titleLabel = new JLabel("💼 Panel de Ventas");
+    titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+    titleLabel.setForeground(TEXT_PRIMARY);
+
+    JLabel subtitle = new JLabel("Gestión de Alquileres");
+    subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+    subtitle.setForeground(TEXT_SECONDARY);
+
+    leftPanel.add(titleLabel);
+    leftPanel.add(subtitle);
+
+    // =========================
+    // LADO DERECHO (USUARIO + FOTO)
+    // =========================
+    JPanel rightPanel = new JPanel(new BorderLayout(10, 8));
+    rightPanel.setOpaque(false);
+
+    JLabel lblBienvenido = new JLabel(
+        "BIENVENIDO " + currentUser.getNombre().toUpperCase()
+    );
+    lblBienvenido.setFont(new Font("Segoe UI", Font.BOLD, 14));
+    lblBienvenido.setForeground(TEXT_PRIMARY);
+    lblBienvenido.setHorizontalAlignment(SwingConstants.RIGHT);
+
+    // Imagen del usuario
+    ImageIcon icon = new ImageIcon(
+        getClass().getResource("/Imagen/foto.jpg")
+    );
+    Image img = icon.getImage().getScaledInstance(45, 45, Image.SCALE_SMOOTH);
+    JLabel lblFoto = new JLabel(new ImageIcon(img));
+
+    JPanel userPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+    userPanel.setOpaque(false);
+    userPanel.add(lblBienvenido);
+    userPanel.add(lblFoto);
+
+    // =========================
+    // BOTÓN CERRAR SESIÓN (ABAJO)
+    // =========================
+    JButton btnLogout = createModernButton("Cerrar Sesión", DANGER, "⎋");
+    btnLogout.addActionListener(e -> logout());
+
+    JPanel logoutPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+    logoutPanel.setOpaque(false);
+    logoutPanel.add(btnLogout);
+
+    rightPanel.add(userPanel, BorderLayout.NORTH);
+    rightPanel.add(logoutPanel, BorderLayout.SOUTH);
+
+    header.add(leftPanel, BorderLayout.WEST);
+    header.add(rightPanel, BorderLayout.EAST);
+
+    return header;
+}
     
     // ============================================
     // CONTENIDO PRINCIPAL
