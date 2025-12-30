@@ -2,6 +2,8 @@ package vista;
 
 import javax.swing.*;
 import javax.swing.table.*;
+
+
 import DAO.DetalleAlquilerDAO;
 import DAO.PromocionDAO;
 import database.conexion;
@@ -15,44 +17,29 @@ import java.util.ArrayList;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+
 public class turistaframe extends JFrame {
     
-    // ============================================
-    // PALETA DE COLORES CLARA Y MODERNA
-    // ============================================
-    private static final Color PRIMARY = new Color(59, 130, 246);      // Azul vibrante
-    private static final Color PRIMARY_LIGHT = new Color(147, 197, 253);
-    private static final Color SECONDARY = new Color(16, 185, 129);    // Verde esmeralda
+    // Paleta de colores oscuros elegantes
+    private static final Color PRIMARY = new Color(59, 130, 246); // Azul brillante
+    private static final Color PRIMARY_DARK = new Color(37, 99, 235);
+    private static final Color SECONDARY = new Color(16, 185, 129); // Verde esmeralda
     private static final Color SUCCESS = new Color(34, 197, 94);
     private static final Color DANGER = new Color(239, 68, 68);
     private static final Color WARNING = new Color(251, 146, 60);
     private static final Color INFO = new Color(14, 165, 233);
     
-    // Fondos claros
-    private static final Color BG_PRIMARY = new Color(249, 250, 251);  // Gris muy claro
-    private static final Color BG_SECONDARY = Color.WHITE;
-    private static final Color BG_HOVER = new Color(243, 244, 246);
+    // Fondos oscuros
+    private static final Color BG_DARK = new Color(15, 23, 42); // Slate oscuro
+    private static final Color BG_CARD = new Color(30, 41, 59); // Slate medio
+    private static final Color BG_HOVER = new Color(51, 65, 85);
     
     // Textos
-    private static final Color TEXT_PRIMARY = new Color(17, 24, 39);
-    private static final Color TEXT_SECONDARY = new Color(107, 114, 128);
-    private static final Color BORDER_COLOR = new Color(229, 231, 235);
+    private static final Color TEXT_PRIMARY = new Color(248, 250, 252);
+    private static final Color TEXT_SECONDARY = new Color(148, 163, 184);
+    private static final Color BORDER_COLOR = new Color(51, 65, 85);
     
-    // Fuente estándar
-    private static final Font FONT_TITLE = new Font("Segoe UI", Font.BOLD, 24);
-    private static final Font FONT_SUBTITLE = new Font("Segoe UI", Font.BOLD, 18);
-    private static final Font FONT_NORMAL = new Font("Segoe UI", Font.PLAIN, 14);
-    private static final Font FONT_BUTTON = new Font("Segoe UI", Font.BOLD, 13);
-    private static final Font FONT_SMALL = new Font("Segoe UI", Font.PLAIN, 12);
-    
-    // ============================================
-    // VARIABLES DE INSTANCIA
-    // ============================================
     private Usuario currentUser;
-    private String idTurista;
-    private ArrayList<CartItem> cart = new ArrayList<>();
-    
-    // Componentes UI
     private JTable tablaRecursos;
     private DefaultTableModel modelRecursos;
     private JTable tableMyAlquileres;
@@ -60,11 +47,10 @@ public class turistaframe extends JFrame {
     private JTable tableCart;
     private DefaultTableModel modelCart;
     private JLabel lblTotal;
+    private ArrayList<CartItem> cart = new ArrayList<>();
     private JTabbedPane tabbedPane;
+    private String idTurista = "";
     
-    // ============================================
-    // CLASE INTERNA: CART ITEM
-    // ============================================
     class CartItem {
         String idRecurso;
         String nombre;
@@ -79,92 +65,40 @@ public class turistaframe extends JFrame {
         }
     }
     
-    // ============================================
-    // CONSTRUCTOR
-    // ============================================
     public turistaframe(Usuario user) {
         this.currentUser = user;
         this.idTurista = obtenerIDTuristaPorNombre(user.getNombre());
         
         if (idTurista == null) {
-            mostrarError("No se encontró el turista en la base de datos");
+            JOptionPane.showMessageDialog(this,
+                "No se encontró el turista en la base de datos",
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
             return;
         }
         
-        configurarVentana();
-        construirInterfaz();
-        cargarDatosIniciales();
-    }
-    
-    // ============================================
-    // CONFIGURACIÓN DE VENTANA
-    // ============================================
-    private void configurarVentana() {
         setTitle("Portal Turista - Sistema de Alquiler");
-        setSize(1400, 800);
+        setSize(1200, 750);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        getContentPane().setBackground(BG_PRIMARY);
+        getContentPane().setBackground(BG_DARK);
+        
         setLayout(new BorderLayout(0, 0));
-    }
-    
-    private void construirInterfaz() {
-        add(crearHeader(), BorderLayout.NORTH);
-        add(crearTabs(), BorderLayout.CENTER);
-    }
-    
-    private void cargarDatosIniciales() {
+        
+        // Header
+        add(createModernHeader(), BorderLayout.NORTH);
+        
+        // Tabs
+        add(createModernTabs(), BorderLayout.CENTER);
+        
         loadRecursos();
         loadMyAlquileres();
         initTableClick();
     }
     
     // ============================================
-    // HEADER
+    // HEADER MODERNO
     // ============================================
-<<<<<<< HEAD
-    private JPanel crearHeader() {
-        JPanel header = new JPanel(new BorderLayout(20, 0));
-        header.setBackground(BG_SECONDARY);
-        header.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 0, 3, 0, PRIMARY),
-            BorderFactory.createEmptyBorder(25, 35, 25, 35)
-        ));
-        
-        // Panel izquierdo - Título y bienvenida
-        JPanel leftPanel = new JPanel(new GridLayout(2, 1, 0, 5));
-        leftPanel.setOpaque(false);
-        
-        JLabel titleLabel = new JLabel("🏖️ Portal de Turista");
-        titleLabel.setFont(FONT_TITLE);
-        titleLabel.setForeground(TEXT_PRIMARY);
-        
-        JLabel welcomeLabel = new JLabel("Bienvenido, " + currentUser.getNombre());
-        welcomeLabel.setFont(FONT_NORMAL);
-        welcomeLabel.setForeground(TEXT_SECONDARY);
-        
-        leftPanel.add(titleLabel);
-        leftPanel.add(welcomeLabel);
-        
-        // Panel derecho - Botones
-        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
-        rightPanel.setOpaque(false);
-        
-        JButton btnCatalogo = crearBoton("📋 Catálogo", INFO);
-        btnCatalogo.addActionListener(e -> new CatalogoFrame());
-        
-        JButton btnLogout = crearBoton("⎋ Cerrar Sesión", DANGER);
-        btnLogout.addActionListener(e -> logout());
-        
-        rightPanel.add(btnCatalogo);
-        rightPanel.add(btnLogout);
-        
-        header.add(leftPanel, BorderLayout.WEST);
-        header.add(rightPanel, BorderLayout.EAST);
-        
-        return header;
-    }
-=======
     private JPanel createModernHeader() {
 
     JPanel header = new JPanel(new BorderLayout(20, 0));
@@ -238,20 +172,23 @@ public class turistaframe extends JFrame {
 
     return header;
 }
->>>>>>> 38b3c0186d81551f9d2476cb895bdee46e2def6b
     
     // ============================================
-    // TABS
+    // TABS MODERNOS
     // ============================================
-    private JTabbedPane crearTabs() {
+    private JTabbedPane createModernTabs() {
         tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-        tabbedPane.setFont(FONT_BUTTON);
-        tabbedPane.setBackground(BG_PRIMARY);
+        tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        tabbedPane.setBackground(BG_DARK);
         tabbedPane.setForeground(TEXT_PRIMARY);
-        tabbedPane.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        tabbedPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        tabbedPane.addTab("  🛒  Alquilar Recursos  ", crearPanelAlquiler());
-        tabbedPane.addTab("  📋  Mis Alquileres  ", crearPanelMisAlquileres());
+        // Personalizar apariencia de tabs
+        UIManager.put("TabbedPane.selected", PRIMARY);
+        UIManager.put("TabbedPane.contentAreaColor", BG_DARK);
+        
+        tabbedPane.addTab("  🛒  Alquilar Recursos  ", createAlquilerPanel());
+        tabbedPane.addTab("  📋  Mis Alquileres  ", createMyAlquileresPanel());
         
         return tabbedPane;
     }
@@ -259,45 +196,49 @@ public class turistaframe extends JFrame {
     // ============================================
     // PANEL DE ALQUILER
     // ============================================
-    private JPanel crearPanelAlquiler() {
-        JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
-        mainPanel.setBackground(BG_PRIMARY);
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+    private JPanel createAlquilerPanel() {
+        JPanel mainPanel = new JPanel(new BorderLayout(0, 15));
+        mainPanel.setBackground(BG_DARK);
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         
-        // Panel de recursos y carrito (izquierda)
-        JPanel recursosYCarrito = new JPanel(new BorderLayout(0, 15));
-        recursosYCarrito.setOpaque(false);
+        // Panel superior - Recursos disponibles
+        JPanel recursosPanel = createRecursosDisponiblesPanel();
         
-        JPanel recursosPanel = crearPanelRecursosDisponibles();
-        JPanel carritoPanel = crearPanelCarrito();
+        // Panel inferior - Carrito
+        JPanel carritoPanel = createCarritoPanel();
         
+        // Dividir verticalmente
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, recursosPanel, carritoPanel);
-        splitPane.setDividerLocation(450);
-        splitPane.setDividerSize(6);
-        splitPane.setBackground(BG_PRIMARY);
+        splitPane.setDividerLocation(320);
+        splitPane.setDividerSize(8);
+        splitPane.setBackground(BG_DARK);
         splitPane.setBorder(null);
         
-        recursosYCarrito.add(splitPane, BorderLayout.CENTER);
-        
-        // Panel de promociones (derecha)
-        JPanel promoPanel = crearPanelPromociones();
-        promoPanel.setPreferredSize(new Dimension(320, 0));
-        
-        mainPanel.add(recursosYCarrito, BorderLayout.CENTER);
-        mainPanel.add(promoPanel, BorderLayout.EAST);
+        // Panel derecho - Promociones
+        JPanel promoPanel = createPromocionesPanel();
+
+// Contenedor central
+        JPanel centerPanel = new JPanel(new BorderLayout(15, 0));
+        centerPanel.setOpaque(false);
+
+        centerPanel.add(splitPane, BorderLayout.CENTER);
+        centerPanel.add(promoPanel, BorderLayout.EAST);
+
+        mainPanel.add(centerPanel, BorderLayout.CENTER);
+
         
         return mainPanel;
     }
     
     // ============================================
-    // PANEL RECURSOS DISPONIBLES
+    // PANEL DE RECURSOS DISPONIBLES
     // ============================================
-    private JPanel crearPanelRecursosDisponibles() {
+    private JPanel createRecursosDisponiblesPanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBackground(BG_SECONDARY);
+        panel.setBackground(BG_CARD);
         panel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(BORDER_COLOR, 1),
-            BorderFactory.createEmptyBorder(20, 20, 20, 20)
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
         ));
         
         // Header
@@ -305,14 +246,19 @@ public class turistaframe extends JFrame {
         headerPanel.setOpaque(false);
         
         JLabel titleLabel = new JLabel("🏖️ Recursos Disponibles");
-        titleLabel.setFont(FONT_SUBTITLE);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         titleLabel.setForeground(TEXT_PRIMARY);
         
-        JButton btnRefresh = crearBoton("↻ Actualizar", INFO);
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        btnPanel.setOpaque(false);
+        
+        JButton btnRefresh = createModernButton("Actualizar", INFO, "↻");
+        btnRefresh.setPreferredSize(new Dimension(130, 36));
         btnRefresh.addActionListener(e -> loadRecursos());
         
+        btnPanel.add(btnRefresh);
         headerPanel.add(titleLabel, BorderLayout.WEST);
-        headerPanel.add(btnRefresh, BorderLayout.EAST);
+        headerPanel.add(btnPanel, BorderLayout.EAST);
         
         // Tabla
         modelRecursos = new DefaultTableModel(
@@ -324,14 +270,17 @@ public class turistaframe extends JFrame {
             }
         };
         
-        tablaRecursos = crearTabla(modelRecursos);
-        JScrollPane scrollPane = crearScrollPane(tablaRecursos);
+        tablaRecursos = createModernTable(modelRecursos);
+        JScrollPane scrollPane = createModernScrollPane(tablaRecursos);
         
         // Botón agregar
-        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 10));
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         bottomPanel.setOpaque(false);
+        bottomPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
         
-        JButton btnAddToCart = crearBotonGrande("➕ Agregar al Carrito", PRIMARY);
+        JButton btnAddToCart = createModernButton("➕ Agregar al Carrito", PRIMARY, "");
+        btnAddToCart.setPreferredSize(new Dimension(200, 42));
+        btnAddToCart.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnAddToCart.addActionListener(e -> addToCart());
         
         bottomPanel.add(btnAddToCart);
@@ -344,29 +293,32 @@ public class turistaframe extends JFrame {
     }
     
     // ============================================
-    // PANEL CARRITO
+    // PANEL DE CARRITO
     // ============================================
-    private JPanel crearPanelCarrito() {
+    private JPanel createCarritoPanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBackground(BG_SECONDARY);
+        panel.setBackground(BG_CARD);
         panel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(SECONDARY, 1),
-            BorderFactory.createEmptyBorder(15, 20, 15, 20)
+            BorderFactory.createLineBorder(SECONDARY, 2),
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
         ));
         
         // Header
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
         
-        JLabel titleLabel = new JLabel("🛒 Mi Carrito");
-        titleLabel.setFont(FONT_SUBTITLE);
+        JLabel titleLabel = new JLabel("🛒 Mi Carrito de Compras");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         titleLabel.setForeground(TEXT_PRIMARY);
         
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         btnPanel.setOpaque(false);
         
-        JButton btnRemove = crearBoton("✕ Quitar", DANGER);
-        JButton btnClear = crearBoton("🗑 Limpiar", WARNING);
+        JButton btnRemove = createModernButton("Quitar", DANGER, "✕");
+        JButton btnClear = createModernButton("Limpiar", WARNING, "🗑");
+        
+        btnRemove.setPreferredSize(new Dimension(110, 36));
+        btnClear.setPreferredSize(new Dimension(110, 36));
         
         btnRemove.addActionListener(e -> removeFromCart());
         btnClear.addActionListener(e -> clearCart());
@@ -387,28 +339,28 @@ public class turistaframe extends JFrame {
             }
         };
         
-        tableCart = crearTabla(modelCart);
-        JScrollPane scrollPane = crearScrollPane(tableCart);
+        tableCart = createModernTable(modelCart);
+        JScrollPane scrollPane = createModernScrollPane(tableCart);
         
         // Panel de total y confirmar
-        JPanel bottomPanel = new JPanel(new BorderLayout(0, 10));
+        JPanel bottomPanel = new JPanel(new BorderLayout(0, 15));
         bottomPanel.setOpaque(false);
-        bottomPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+        bottomPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
         
         // Total
-        JPanel totalPanel = new JPanel(new BorderLayout(15, 0));
-        totalPanel.setBackground(new Color(240, 253, 244));
+        JPanel totalPanel = new JPanel(new BorderLayout());
+        totalPanel.setBackground(BG_HOVER);
         totalPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(SECONDARY, 1),
-            BorderFactory.createEmptyBorder(12, 20, 12, 20)
+            BorderFactory.createLineBorder(SECONDARY, 2),
+            BorderFactory.createEmptyBorder(15, 20, 15, 20)
         ));
         
-        JLabel lblTotalText = new JLabel("TOTAL:");
-        lblTotalText.setFont(FONT_BUTTON);
+        JLabel lblTotalText = new JLabel("TOTAL A PAGAR:");
+        lblTotalText.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lblTotalText.setForeground(TEXT_SECONDARY);
         
         lblTotal = new JLabel("S/ 0.00");
-        lblTotal.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblTotal.setFont(new Font("Segoe UI", Font.BOLD, 28));
         lblTotal.setForeground(SECONDARY);
         lblTotal.setHorizontalAlignment(SwingConstants.RIGHT);
         
@@ -416,7 +368,9 @@ public class turistaframe extends JFrame {
         totalPanel.add(lblTotal, BorderLayout.EAST);
         
         // Botón confirmar
-        JButton btnConfirm = crearBotonGrande("✓ Confirmar Alquiler", SUCCESS);
+        JButton btnConfirm = createModernButton("✓ Confirmar Alquiler", SUCCESS, "");
+        btnConfirm.setPreferredSize(new Dimension(250, 50));
+        btnConfirm.setFont(new Font("Segoe UI", Font.BOLD, 16));
         btnConfirm.addActionListener(e -> processAlquiler());
         
         JPanel btnConfirmPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -434,64 +388,19 @@ public class turistaframe extends JFrame {
     }
     
     // ============================================
-    // PANEL PROMOCIONES
+    // PANEL DE MIS ALQUILERES
     // ============================================
-    private JPanel crearPanelPromociones() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBackground(BG_SECONDARY);
-        panel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(INFO, 2),
-            BorderFactory.createEmptyBorder(25, 25, 25, 25)
-        ));
-        
-        JLabel title = new JLabel("🎁 Promociones");
-        title.setFont(FONT_SUBTITLE);
-        title.setForeground(TEXT_PRIMARY);
-        title.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
-        panel.add(title);
-        panel.add(Box.createVerticalStrut(25));
-        
-        // Sección por horas
-        panel.add(crearLabelPromo("⏱️ Por Horas", true));
-        panel.add(Box.createVerticalStrut(10));
-        panel.add(crearLabelPromo("3+ horas → 10% OFF", false));
-        panel.add(crearLabelPromo("5+ horas → 15% OFF", false));
-        panel.add(crearLabelPromo("8+ horas → 20% OFF", false));
-        
-        panel.add(Box.createVerticalStrut(25));
-        
-        // Sección por cantidad
-        panel.add(crearLabelPromo("🚜 Por Cantidad", true));
-        panel.add(Box.createVerticalStrut(10));
-        panel.add(crearLabelPromo("4+ recursos → 15% OFF", false));
-        panel.add(crearLabelPromo("6+ recursos → 25% OFF", false));
-        
-        return panel;
-    }
-    
-    private JLabel crearLabelPromo(String texto, boolean esTitulo) {
-        JLabel lbl = new JLabel(texto);
-        lbl.setFont(esTitulo ? new Font("Segoe UI", Font.BOLD, 15) : FONT_NORMAL);
-        lbl.setForeground(esTitulo ? TEXT_PRIMARY : TEXT_SECONDARY);
-        lbl.setAlignmentX(Component.CENTER_ALIGNMENT);
-        return lbl;
-    }
-    
-    // ============================================
-    // PANEL MIS ALQUILERES
-    // ============================================
-    private JPanel crearPanelMisAlquileres() {
+    private JPanel createMyAlquileresPanel() {
         JPanel panel = new JPanel(new BorderLayout(15, 15));
-        panel.setBackground(BG_PRIMARY);
-        panel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        panel.setBackground(BG_DARK);
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         
-        JPanel cardPanel = new JPanel(new BorderLayout(15, 15));
-        cardPanel.setBackground(BG_SECONDARY);
+        // Card contenedor
+        JPanel cardPanel = new JPanel(new BorderLayout(10, 10));
+        cardPanel.setBackground(BG_CARD);
         cardPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(BORDER_COLOR, 2),
-            BorderFactory.createEmptyBorder(20, 20, 20, 20)
+            BorderFactory.createLineBorder(BORDER_COLOR, 1),
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
         ));
         
         // Header
@@ -499,14 +408,17 @@ public class turistaframe extends JFrame {
         headerPanel.setOpaque(false);
         
         JLabel titleLabel = new JLabel("📋 Historial de Alquileres");
-        titleLabel.setFont(FONT_SUBTITLE);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         titleLabel.setForeground(TEXT_PRIMARY);
         
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         btnPanel.setOpaque(false);
         
-        JButton btnRefresh = crearBoton("↻ Actualizar", INFO);
-        JButton btnDevolver = crearBoton("↩ Devolver Recurso", PRIMARY);
+        JButton btnRefresh = createModernButton("Actualizar", INFO, "↻");
+        JButton btnDevolver = createModernButton("Devolver Recurso", PRIMARY, "↩");
+        
+        btnRefresh.setPreferredSize(new Dimension(130, 36));
+        btnDevolver.setPreferredSize(new Dimension(180, 36));
         
         btnRefresh.addActionListener(e -> loadMyAlquileres());
         btnDevolver.addActionListener(e -> returnProduct());
@@ -527,8 +439,8 @@ public class turistaframe extends JFrame {
             }
         };
         
-        tableMyAlquileres = crearTabla(modelMyAlquileres);
-        JScrollPane scrollPane = crearScrollPane(tableMyAlquileres);
+        tableMyAlquileres = createModernTable(modelMyAlquileres);
+        JScrollPane scrollPane = createModernScrollPane(tableMyAlquileres);
         
         cardPanel.add(headerPanel, BorderLayout.NORTH);
         cardPanel.add(scrollPane, BorderLayout.CENTER);
@@ -537,73 +449,114 @@ public class turistaframe extends JFrame {
         
         return panel;
     }
+    // ============================================
+// PANEL DE PROMOCIONES (SOLO VISUAL)
+// ============================================
+private JPanel createPromocionesPanel() {
+
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setBackground(BG_CARD);
+    panel.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(INFO, 2),
+        BorderFactory.createEmptyBorder(15, 15, 15, 15)
+    ));
+
+    JLabel title = new JLabel("🎁 Promociones");
+    title.setFont(new Font("Segoe UI", Font.BOLD, 18));
+    title.setForeground(TEXT_PRIMARY);
+    title.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+    panel.add(title);
+    panel.add(Box.createVerticalStrut(15));
+
+    panel.add(crearPromoLabel("⏱️ Por horas"));
+    panel.add(crearPromoLabel("• 3 horas o más → 10% OFF"));
+    panel.add(crearPromoLabel("• 5 horas o más → 15% OFF"));
+    panel.add(crearPromoLabel("• 8 horas o más → 20% OFF"));
+
+    panel.add(Box.createVerticalStrut(15));
+
+    panel.add(crearPromoLabel("🚜 Por cantidad"));
+    panel.add(crearPromoLabel("• 4 recursos o más → 15% OFF"));
+    panel.add(crearPromoLabel("• 6 recursos o más → 25% OFF"));
+
+    return panel;
+}
+
+
+
+private JLabel crearPromoLabel(String texto) {
+    JLabel lbl = new JLabel(texto);
+    lbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+    lbl.setForeground(TEXT_SECONDARY);
+    lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+    return lbl;
+}
+
+    
     
     // ============================================
     // COMPONENTES REUTILIZABLES
     // ============================================
-    private JButton crearBoton(String texto, Color color) {
-        JButton btn = new JButton(texto);
-        btn.setFont(FONT_BUTTON);
-        btn.setBackground(color);
+    private JButton createModernButton(String text, Color bgColor, String icon) {
+        JButton btn = new JButton(icon.isEmpty() ? text : icon + "  " + text);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btn.setBackground(bgColor);
         btn.setForeground(Color.WHITE);
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        btn.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
         
         // Efecto hover
-        btn.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent evt) {
-                btn.setBackground(color.brighter());
+        btn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                btn.setBackground(bgColor.brighter());
             }
-            public void mouseExited(MouseEvent evt) {
-                btn.setBackground(color);
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                btn.setBackground(bgColor);
             }
         });
         
         return btn;
     }
     
-    private JButton crearBotonGrande(String texto, Color color) {
-        JButton btn = crearBoton(texto, color);
-        btn.setPreferredSize(new Dimension(220, 48));
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        return btn;
-    }
-    
-    private JTable crearTabla(DefaultTableModel model) {
+    private JTable createModernTable(DefaultTableModel model) {
         JTable table = new JTable(model);
-        table.setFont(FONT_NORMAL);
-        table.setRowHeight(45);
-        table.setShowGrid(true);
-        table.setGridColor(BORDER_COLOR);
-        table.setIntercellSpacing(new Dimension(1, 1));
-        table.setSelectionBackground(PRIMARY_LIGHT);
-        table.setSelectionForeground(TEXT_PRIMARY);
-        table.setBackground(BG_SECONDARY);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        table.setRowHeight(40);
+        table.setShowGrid(false);
+        table.setIntercellSpacing(new Dimension(0, 0));
+        table.setSelectionBackground(PRIMARY_DARK);
+        table.setSelectionForeground(Color.WHITE);
+        table.setBackground(BG_CARD);
         table.setForeground(TEXT_PRIMARY);
         
         // Header
         JTableHeader header = table.getTableHeader();
-        header.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        header.setBackground(PRIMARY);
-        header.setForeground(Color.WHITE);
-        header.setBorder(BorderFactory.createEmptyBorder());
-        header.setPreferredSize(new Dimension(header.getWidth(), 45));
+        header.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        header.setBackground(BG_DARK);
+        header.setForeground(TEXT_SECONDARY);
+        header.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, PRIMARY));
+        header.setPreferredSize(new Dimension(header.getWidth(), 40));
         
         // Renderer personalizado
         DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer() {
             @Override
-            public Component getTableCellRendererComponent(JTable table, Object value,
+            public Component getTableCellRendererComponent(JTable table, Object value, 
                     boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 
                 if (!isSelected) {
-                    setBackground(row % 2 == 0 ? BG_SECONDARY : BG_HOVER);
+                    setBackground(row % 2 == 0 ? BG_CARD : BG_HOVER);
                     setForeground(TEXT_PRIMARY);
                 }
                 
-                setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+                setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER_COLOR),
+                    BorderFactory.createEmptyBorder(8, 12, 8, 12)
+                ));
                 
                 return c;
             }
@@ -616,17 +569,20 @@ public class turistaframe extends JFrame {
         return table;
     }
     
-    private JScrollPane crearScrollPane(JTable table) {
+    private JScrollPane createModernScrollPane(JTable table) {
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createLineBorder(BORDER_COLOR, 1));
-        scrollPane.setBackground(BG_SECONDARY);
-        scrollPane.getViewport().setBackground(BG_SECONDARY);
+        scrollPane.setBackground(BG_CARD);
+        scrollPane.getViewport().setBackground(BG_CARD);
+        
+        scrollPane.getVerticalScrollBar().setBackground(BG_CARD);
+        scrollPane.getHorizontalScrollBar().setBackground(BG_CARD);
         
         return scrollPane;
     }
     
     // ============================================
-    // LÓGICA DE NEGOCIO - CARGAR DATOS
+    // LÓGICA DE NEGOCIO
     // ============================================
     private void loadRecursos() {
         modelRecursos.setRowCount(0);
@@ -645,7 +601,11 @@ public class turistaframe extends JFrame {
                 });
             }
         } catch (SQLException e) {
-            mostrarError("Error al cargar recursos: " + e.getMessage());
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "Error al cargar recursos: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
         }
     }
     
@@ -655,13 +615,12 @@ public class turistaframe extends JFrame {
         
         try (Connection conn = conexion.getConnection()) {
             String sql = "SELECT a.IDAlquiler, da.IDRecurso, a.FechaDeInicio, a.HoraDeInicio, a.Duracion, " +
-                        "r.Recurso, r.TarifaPorHora " +
+                        "r.Recurso, r.TarifaPorHora, r.Estado " +
                         "FROM Alquiler a " +
                         "JOIN DETALLEALQUILER da ON a.IDAlquiler = da.IDAlquiler " +
                         "JOIN RECURSOS r ON da.IDRecurso = r.IDRecurso " +
                         "WHERE da.IDTurista = ? " +
                         "ORDER BY a.FechaDeInicio DESC";
-            
             PreparedStatement pst = conn.prepareStatement(sql);
             pst.setString(1, idTurista);
             ResultSet rs = pst.executeQuery();
@@ -678,72 +637,69 @@ public class turistaframe extends JFrame {
                 });
             }
         } catch (SQLException e) {
-            mostrarError("Error al cargar alquileres: " + e.getMessage());
-        }
-    }
-    
-    private String obtenerIDTuristaPorNombre(String nombre) {
-        try (Connection conn = conexion.getConnection()) {
-            String sql = "SELECT IDTurista FROM TURISTAA WHERE UPPER(Nombre) = UPPER(?)";
-            PreparedStatement pst = conn.prepareStatement(sql);
-            pst.setString(1, nombre);
-            ResultSet rs = pst.executeQuery();
-            
-            if (rs.next()) {
-                return rs.getString("IDTurista");
-            }
-        } catch (SQLException e) {
             e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "Error al cargar alquileres: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
         }
-        return null;
     }
-    
-    // ============================================
-    // LÓGICA DEL CARRITO
-    // ============================================
     private void initTableClick() {
-        tablaRecursos.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) {
-                    int row = tablaRecursos.getSelectedRow();
-                    if (row == -1) return;
-                    
-                    String nombre = tablaRecursos.getValueAt(row, 1).toString();
-                    String tarifaStr = tablaRecursos.getValueAt(row, 3).toString();
-                    double tarifa = Double.parseDouble(tarifaStr.replace("S/ ", ""));
-                    
-                    String rutaImagen = "/imagenes/" + nombre.toLowerCase().replace(" ", "_") + ".jpg";
-                    mostrarImagenRecurso(nombre, tarifa, rutaImagen);
-                }
+
+    tablaRecursos.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+
+            if (e.getClickCount() == 2) {
+
+                int row = tablaRecursos.getSelectedRow();
+
+                String idRecurso = tablaRecursos.getValueAt(row, 0).toString();
+                String nombre = tablaRecursos.getValueAt(row, 1).toString();
+                double tarifa = Double.parseDouble(
+                        tablaRecursos.getValueAt(row, 2).toString()
+                );
+
+                String rutaImagen = "/imagenes/" +
+                        nombre.toLowerCase().replace(" ", "_") + ".jpg";
+
+                mostrarImagenRecurso(nombre, tarifa, rutaImagen);
             }
-        });
-    }
-    
-    private void mostrarImagenRecurso(String nombre, double tarifa, String rutaImagen) {
-        try {
-            ImageIcon icon = new ImageIcon(getClass().getResource(rutaImagen));
-            JLabel lblImagen = new JLabel(icon);
-            lblImagen.setHorizontalAlignment(JLabel.CENTER);
-            
-            JOptionPane.showMessageDialog(this, lblImagen,
-                nombre + " - S/ " + String.format("%.2f", tarifa) + " por hora",
-                JOptionPane.PLAIN_MESSAGE);
-        } catch (Exception e) {
-            mostrarError("No se pudo cargar la imagen del recurso");
         }
-    }
+    });
+}
+private void mostrarImagenRecurso(String nombre, double tarifa, String rutaImagen) {
+
+    ImageIcon icon = new ImageIcon(
+            getClass().getResource(rutaImagen)
+    );
+
+    JLabel lblImagen = new JLabel(icon);
+    lblImagen.setHorizontalAlignment(JLabel.CENTER);
+
+    JOptionPane.showMessageDialog(
+            this,
+            lblImagen,
+            nombre + " - S/ " + tarifa + " por hora",
+            JOptionPane.PLAIN_MESSAGE
+    );
+}
+
+
     
     private void addToCart() {
         int selectedRow = tablaRecursos.getSelectedRow();
         if (selectedRow == -1) {
-            mostrarAdvertencia("Por favor selecciona un recurso de la tabla");
+            JOptionPane.showMessageDialog(this,
+                "Por favor selecciona un recurso de la tabla",
+                "Aviso",
+                JOptionPane.WARNING_MESSAGE);
             return;
         }
         
         String id = modelRecursos.getValueAt(selectedRow, 0).toString();
-        String nombre = modelRecursos.getValueAt(selectedRow, 1).toString();
-        String tarifaStr = modelRecursos.getValueAt(selectedRow, 3).toString();
+        String nombre = (String) modelRecursos.getValueAt(selectedRow, 1);
+        String tarifaStr = (String) modelRecursos.getValueAt(selectedRow, 3);
         double tarifa = Double.parseDouble(tarifaStr.replace("S/ ", ""));
         
         String horasStr = JOptionPane.showInputDialog(this,
@@ -757,21 +713,30 @@ public class turistaframe extends JFrame {
             int horas = Integer.parseInt(horasStr);
             
             if (horas <= 0) {
-                mostrarError("Las horas deben ser mayor a 0");
+                JOptionPane.showMessageDialog(this,
+                    "Las horas deben ser mayor a 0",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
             cart.add(new CartItem(id, nombre, tarifa, horas));
             updateCartTable();
         } catch (NumberFormatException e) {
-            mostrarError("Por favor ingresa un número válido");
+            JOptionPane.showMessageDialog(this,
+                "Por favor ingresa un número válido",
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
         }
     }
     
     private void removeFromCart() {
         int selectedRow = tableCart.getSelectedRow();
         if (selectedRow == -1) {
-            mostrarAdvertencia("Selecciona un item del carrito");
+            JOptionPane.showMessageDialog(this,
+                "Selecciona un item del carrito",
+                "Aviso",
+                JOptionPane.WARNING_MESSAGE);
             return;
         }
         
@@ -811,190 +776,11 @@ public class turistaframe extends JFrame {
         lblTotal.setText(String.format("S/ %.2f", total));
     }
     
-    // ============================================
-    // PROCESAMIENTO DE ALQUILER
-    // ============================================
-    private void processAlquiler() {
-        if (cart.isEmpty()) {
-            mostrarAdvertencia("El carrito está vacío");
-            return;
-        }
-        
-        if (idTurista == null || idTurista.isEmpty()) {
-            mostrarError("No se pudo identificar al turista");
-            return;
-        }
-        
-        // Calcular totales
-        int horasTotales = 0;
-        double totalBruto = 0;
-        
-        for (CartItem item : cart) {
-            horasTotales += item.horas;
-            totalBruto += item.tarifaPorHora * item.horas;
-        }
-        
-        int cantidadRecursos = cart.size();
-        
-        // Determinar promoción
-        Promocion promocionAplicada = determinarPromocion(horasTotales, cantidadRecursos);
-        
-        double descuento = 0;
-        if (promocionAplicada != null) {
-            descuento = totalBruto * (promocionAplicada.getPorcentajeDescuento() / 100.0);
-        }
-        
-        double totalPagar = totalBruto - descuento;
-        
-        // Mensaje de confirmación
-        String mensajeConfirmacion = "Total bruto: S/ " + String.format("%.2f", totalBruto);
-        
-        if (promocionAplicada != null) {
-            mensajeConfirmacion += "\nPromoción aplicada: " + promocionAplicada.getCondiciones() +
-                "\nDescuento: " + promocionAplicada.getPorcentajeDescuento() + "%";
-        }
-        
-        mensajeConfirmacion += "\n\nTotal a pagar: S/ " + String.format("%.2f", totalPagar) +
-            "\n\n¿Confirmar alquiler?";
-        
-        int confirm = JOptionPane.showConfirmDialog(this, mensajeConfirmacion,
-            "Confirmar Alquiler", JOptionPane.YES_NO_OPTION);
-        
-        if (confirm != JOptionPane.YES_OPTION) return;
-        
-        // Procesar en base de datos
-        try (Connection conn = conexion.getConnection()) {
-            conn.setAutoCommit(false);
-            
-            int duracionTotal = 0;
-            for (CartItem item : cart) duracionTotal += item.horas;
-            int duracionPromedio = duracionTotal / cart.size();
-            
-            String idAlquiler = generarNuevoIDAlquiler(conn);
-            
-            // Insertar alquiler
-            String sqlAlquiler = "INSERT INTO ALQUILER (IDAlquiler, FechaDeInicio, HoraDeInicio, Duracion) " +
-                "VALUES (?, ?, ?, ?)";
-            
-            PreparedStatement pstAlquiler = conn.prepareStatement(sqlAlquiler);
-            pstAlquiler.setString(1, idAlquiler);
-            pstAlquiler.setDate(2, Date.valueOf(LocalDate.now()));
-            pstAlquiler.setTime(3, Time.valueOf(LocalTime.now()));
-            pstAlquiler.setInt(4, duracionPromedio);
-            pstAlquiler.executeUpdate();
-            
-            // Insertar detalles
-            for (CartItem item : cart) {
-                String idDetalle = generarNuevoIDDetalleAlquiler(conn);
-                
-                String sqlDetalle = "INSERT INTO DETALLEALQUILER " +
-                    "(IDDetalleAlquiler, IDRecurso, IDTurista, IDAlquiler, IDPromocion) " +
-                    "VALUES (?, ?, ?, ?, ?)";
-                
-                PreparedStatement pstDetalle = conn.prepareStatement(sqlDetalle);
-                pstDetalle.setString(1, idDetalle);
-                pstDetalle.setString(2, item.idRecurso);
-                pstDetalle.setString(3, idTurista);
-                pstDetalle.setString(4, idAlquiler);
-                pstDetalle.setString(5, promocionAplicada != null ? 
-                    promocionAplicada.getIDPromocion() : null);
-                pstDetalle.executeUpdate();
-                
-                // Actualizar estado del recurso
-                String sqlEstado = "UPDATE RECURSOS SET Estado = 'alquilado' WHERE IDRecurso = ?";
-                PreparedStatement pstEstado = conn.prepareStatement(sqlEstado);
-                pstEstado.setString(1, item.idRecurso);
-                pstEstado.executeUpdate();
-            }
-            
-            conn.commit();
-            
-            // Mensaje de éxito
-            String mensajeFinal = "✅ ¡Alquiler confirmado exitosamente!\n\n" +
-                "ID Alquiler: " + idAlquiler +
-                "\nItems: " + cart.size() +
-                "\nTotal bruto: S/ " + String.format("%.2f", totalBruto);
-            
-            if (promocionAplicada != null) {
-                mensajeFinal += "\nPromoción aplicada: " + promocionAplicada.getCondiciones() +
-                    "\nDescuento: " + promocionAplicada.getPorcentajeDescuento() + "%";
-            }
-            
-            mensajeFinal += "\n\nTotal pagado: S/ " + String.format("%.2f", totalPagar) +
-                "\n\n¡Disfruta tu experiencia!";
-            
-            JOptionPane.showMessageDialog(this, mensajeFinal, "Éxito", 
-                JOptionPane.INFORMATION_MESSAGE);
-            
-            clearCart();
-            loadRecursos();
-            loadMyAlquileres();
-            
-        } catch (SQLException e) {
-            mostrarError("Error al procesar el alquiler:\n" + e.getMessage());
-        }
-    }
-    
-    private Promocion determinarPromocion(int horasTotales, int cantidadRecursos) {
-        try {
-            PromocionDAO dao = new PromocionDAO();
-            
-            if (cantidadRecursos >= 6) return dao.obtenerPorId("P005");
-            if (cantidadRecursos >= 4) return dao.obtenerPorId("P004");
-            if (horasTotales >= 8) return dao.obtenerPorId("P003");
-            if (horasTotales >= 5) return dao.obtenerPorId("P002");
-            if (horasTotales >= 3) return dao.obtenerPorId("P001");
-            
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-    
-    // ============================================
-    // DEVOLUCIÓN DE RECURSOS
-    // ============================================
-    private void returnProduct() {
-        int fila = tableMyAlquileres.getSelectedRow();
-        if (fila == -1) {
-            mostrarAdvertencia("Por favor selecciona un alquiler de la tabla");
-            return;
-        }
-        
-        String idAlquiler = tableMyAlquileres.getValueAt(fila, 0).toString();
-        String idRecurso = tableMyAlquileres.getValueAt(fila, 1).toString();
-        String recursoNombre = tableMyAlquileres.getValueAt(fila, 5).toString();
-        
-        int confirm = JOptionPane.showConfirmDialog(this,
-            "¿Deseas devolver el recurso: " + recursoNombre + "?",
-            "Confirmar Devolución",
-            JOptionPane.YES_NO_OPTION);
-        
-        if (confirm != JOptionPane.YES_OPTION) return;
-        
-        DetalleAlquilerDAO dao = new DetalleAlquilerDAO();
-        
-        if (dao.devolverRecurso(idAlquiler, idRecurso)) {
-            JOptionPane.showMessageDialog(this,
-                "✅ Recurso devuelto correctamente",
-                "Éxito",
-                JOptionPane.INFORMATION_MESSAGE);
-            loadMyAlquileres();
-            loadRecursos();
-        } else {
-            mostrarError("Error al devolver el recurso");
-        }
-    }
-    
-    // ============================================
-    // GENERADORES DE ID
-    // ============================================
     private String generarNuevoIDAlquiler(Connection conn) throws SQLException {
         String prefijo = "A";
         int siguienteNumero = 1;
         
-        String sql = "SELECT TOP 1 IDAlquiler FROM ALQUILER WHERE IDAlquiler LIKE ? " +
-            "ORDER BY IDAlquiler DESC";
+        String sql = "SELECT TOP 1 IDAlquiler FROM ALQUILER WHERE IDAlquiler LIKE ? ORDER BY IDAlquiler DESC";
         PreparedStatement pst = conn.prepareStatement(sql);
         pst.setString(1, prefijo + "%");
         ResultSet rs = pst.executeQuery();
@@ -1008,36 +794,246 @@ public class turistaframe extends JFrame {
         
         return String.format("%s%03d", prefijo, siguienteNumero);
     }
+
+    private Promocion determinarPromocion(int horasTotales, int cantidadRecursos) {
+    try {
+        PromocionDAO dao = new PromocionDAO();
+
+        if (cantidadRecursos >= 6)
+            return dao.obtenerPorId("P005");
+        if (cantidadRecursos >= 4)
+            return dao.obtenerPorId("P004");
+        if (horasTotales >= 8)
+            return dao.obtenerPorId("P003");
+        if (horasTotales >= 5)
+            return dao.obtenerPorId("P002");
+        if (horasTotales >= 3)
+            return dao.obtenerPorId("P001");
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return null;
+}
+
+    
+    private void processAlquiler() {
+        if (cart.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                "El carrito está vacío",
+                "Aviso",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (idTurista == null || idTurista.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                "No se pudo identificar al turista",
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int horasTotales = 0;
+        double totalBruto = 0;
+
+        for (CartItem item : cart) {
+                horasTotales += item.horas;
+                totalBruto += item.tarifaPorHora * item.horas;
+            }
+
+        int cantidadRecursos = cart.size();
+
+// 👉 AQUÍ SÍ SE USA TU MÉTODO
+        Promocion promocionAplicada =
+        determinarPromocion(horasTotales, cantidadRecursos);
+
+            double descuento = 0;
+               if (promocionAplicada != null) {
+                descuento = totalBruto * (promocionAplicada.getPorcentajeDescuento() / 100.0);
+            }
+
+        double totalPagar = totalBruto - descuento;
+
+            String mensajeConfirmacion =
+        "Total bruto: S/ " + String.format("%.2f", totalBruto);
+
+if (promocionAplicada != null) {
+    mensajeConfirmacion +=
+            "\nPromoción aplicada: " + promocionAplicada.getCondiciones() +
+            "\nDescuento: " + promocionAplicada.getPorcentajeDescuento() + "%";
+}
+
+mensajeConfirmacion +=
+        "\n\nTotal a pagar: S/ " + String.format("%.2f", totalPagar) +
+        "\n\n¿Confirmar alquiler?";
+
+int confirm = JOptionPane.showConfirmDialog(
+        this,
+        mensajeConfirmacion,
+        "Confirmar Alquiler",
+        JOptionPane.YES_NO_OPTION
+);
+
+if (confirm != JOptionPane.YES_OPTION) return;
+
+
+        try (Connection conn = conexion.getConnection()) {
+            conn.setAutoCommit(false);
+
+            int duracionTotal = 0;
+            for (CartItem item : cart) duracionTotal += item.horas;
+            int duracionPromedio = duracionTotal / cart.size();
+
+            String idAlquiler = generarNuevoIDAlquiler(conn);
+
+            String sqlAlquiler = """
+                INSERT INTO ALQUILER (IDAlquiler, FechaDeInicio, HoraDeInicio, Duracion)
+                VALUES (?, ?, ?, ?)
+            """;
+
+            PreparedStatement pstAlquiler = conn.prepareStatement(sqlAlquiler);
+            pstAlquiler.setString(1, idAlquiler);
+            pstAlquiler.setDate(2, Date.valueOf(LocalDate.now()));
+            pstAlquiler.setTime(3, Time.valueOf(LocalTime.now()));
+            pstAlquiler.setInt(4, duracionPromedio);
+            pstAlquiler.executeUpdate();
+
+            for (CartItem item : cart) {
+                String idDetalle = generarNuevoIDDetalleAlquiler(conn);
+
+                String sqlDetalle = """
+                    INSERT INTO DETALLEALQUILER
+                    (IDDetalleAlquiler, IDRecurso, IDTurista, IDAlquiler, IDPromocion)
+                    VALUES (?, ?, ?, ?, ?)
+                """;
+
+                PreparedStatement pstDetalle = conn.prepareStatement(sqlDetalle);
+                pstDetalle.setString(1, idDetalle);
+                pstDetalle.setString(2, item.idRecurso);
+                pstDetalle.setString(3, idTurista);
+                pstDetalle.setString(4, idAlquiler);
+                pstDetalle.setString(5,promocionAplicada != null? promocionAplicada.getIDPromocion(): null
+);
+                pstDetalle.executeUpdate();
+            }
+
+            conn.commit();
+
+            String mensajeFinal =
+        "✅ ¡Alquiler confirmado exitosamente!\n\n" +
+        "ID Alquiler: " + idAlquiler +
+        "\nItems: " + cart.size() +
+        "\nTotal bruto: S/ " + String.format("%.2f", totalBruto);
+
+if (promocionAplicada != null) {
+    mensajeFinal +=
+            "\nPromoción aplicada: " + promocionAplicada.getCondiciones() +
+            "\nDescuento: " + promocionAplicada.getPorcentajeDescuento() + "%";
+}
+
+mensajeFinal +=
+        "\n\nTotal pagado: S/ " + String.format("%.2f", totalPagar) +
+        "\n\n¡Disfruta tu experiencia!";
+
+JOptionPane.showMessageDialog(
+        this,
+        mensajeFinal,
+        "Éxito",
+        JOptionPane.INFORMATION_MESSAGE
+);
+
+
+            clearCart();
+            loadRecursos();
+            loadMyAlquileres();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "Error al procesar el alquiler:\n" + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private String obtenerIDTuristaPorNombre(String nombre) {
+        try (Connection conn = conexion.getConnection()) {
+            String sql = "SELECT IDTurista FROM TURISTAA WHERE UPPER(Nombre) = UPPER(?)";
+            PreparedStatement pst = conn.prepareStatement(sql);
+            pst.setString(1, nombre);
+
+            ResultSet rs = pst.executeQuery();
+            if (rs.next()) {
+                return rs.getString("IDTurista");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    private void returnProduct() {
+        int fila = tableMyAlquileres.getSelectedRow();
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this,
+                "Por favor selecciona un alquiler de la tabla",
+                "Aviso",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String idAlquiler = tableMyAlquileres.getValueAt(fila, 0).toString();
+        String idRecurso = tableMyAlquileres.getValueAt(fila, 1).toString();
+        String recursoNombre = tableMyAlquileres.getValueAt(fila, 5).toString();
+
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "¿Deseas devolver el recurso: " + recursoNombre + "?",
+            "Confirmar Devolución",
+            JOptionPane.YES_NO_OPTION);
+
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        DetalleAlquilerDAO dao = new DetalleAlquilerDAO();
+
+        if (dao.devolverRecurso(idAlquiler, idRecurso)) {
+            JOptionPane.showMessageDialog(this,
+                "✅ Recurso devuelto correctamente",
+                "Éxito",
+                JOptionPane.INFORMATION_MESSAGE);
+            loadMyAlquileres();
+            loadRecursos();
+        } else {
+            JOptionPane.showMessageDialog(this,
+                "Error al devolver el recurso",
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
     
     private String generarNuevoIDDetalleAlquiler(Connection conn) throws SQLException {
         String prefijo = "D";
         int siguienteNumero = 1;
-        
-        String sql = "SELECT TOP 1 IDDetalleAlquiler FROM DETALLEALQUILER " +
-            "WHERE IDDetalleAlquiler LIKE ? ORDER BY IDDetalleAlquiler DESC";
-        
+
+        String sql = """
+            SELECT TOP 1 IDDetalleAlquiler
+            FROM DETALLEALQUILER
+            WHERE IDDetalleAlquiler LIKE ?
+            ORDER BY IDDetalleAlquiler DESC
+        """;
+
         PreparedStatement pst = conn.prepareStatement(sql);
         pst.setString(1, prefijo + "%");
         ResultSet rs = pst.executeQuery();
-        
+
         if (rs.next()) {
             String ultimoID = rs.getString("IDDetalleAlquiler");
             String numeroStr = ultimoID.substring(prefijo.length());
             siguienteNumero = Integer.parseInt(numeroStr) + 1;
         }
-        
+
         return String.format("%s%03d", prefijo, siguienteNumero);
-    }
-    
-    // ============================================
-    // UTILIDADES
-    // ============================================
-    private void mostrarError(String mensaje) {
-        JOptionPane.showMessageDialog(this, mensaje, "Error", JOptionPane.ERROR_MESSAGE);
-    }
-    
-    private void mostrarAdvertencia(String mensaje) {
-        JOptionPane.showMessageDialog(this, mensaje, "Aviso", JOptionPane.WARNING_MESSAGE);
     }
     
     private void logout() {
@@ -1045,7 +1041,7 @@ public class turistaframe extends JFrame {
             "¿Deseas cerrar sesión?",
             "Confirmar",
             JOptionPane.YES_NO_OPTION);
-        
+            
         if (confirm == JOptionPane.YES_OPTION) {
             dispose();
             new login().setVisible(true);
