@@ -27,6 +27,9 @@ public class adminframe extends JFrame {
     private DefaultTableModel modelRecursos, modelUsuarios, modelTuristas, modelAlquileres, modelPromociones;
     private JTabbedPane tabbedPane;
     private JLabel lblTotalIngresos;
+    private JTable tablaIngresosDia, tablaControlAlquileres;
+    private DefaultTableModel modelIngresosDia, modelControlAlquileres;
+    private JPanel graficaPanel;
     
     public adminframe(Usuario user) {
         this.currentUser = user;
@@ -130,7 +133,7 @@ public class adminframe extends JFrame {
         tabbedPane.addTab("  🧳  Turistas       ", createTuristasPanel());
         tabbedPane.addTab("  📋  Alquileres     ", createAlquileresPanel());
         tabbedPane.addTab("  🎁  Promociones    ", createPromocionesPanel());
-        
+        tabbedPane.addTab("  📊  Reportes       ", createReportesPanel());
         return tabbedPane;
     }
     
@@ -1214,6 +1217,251 @@ public class adminframe extends JFrame {
             }
         }
     }
+    private JPanel createReportesPanel() {
+
+    JPanel panel = new JPanel(new BorderLayout(15, 15));
+    panel.setBackground(BG_LIGHT);
+    panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+
+    // =============================
+    // PARTE SUPERIOR: INGRESOS POR DÍA
+    // =============================
+    JPanel ingresosPanel = new JPanel(new BorderLayout(10, 10));
+    ingresosPanel.setBackground(BG_CARD);
+    ingresosPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+
+    JLabel lblIngresos = new JLabel("📅 Ingresos por Día");
+    lblIngresos.setFont(new Font("Segoe UI", Font.BOLD, 18));
+
+    modelIngresosDia = new DefaultTableModel(
+        new String[]{"Fecha", "Total Ingresos (S/)"}, 0
+    ) {
+        public boolean isCellEditable(int r, int c) { return false; }
+    };
+
+    tablaIngresosDia = createModernTable(modelIngresosDia);
+
+    ingresosPanel.add(lblIngresos, BorderLayout.NORTH);
+    graficaPanel = new GraficaIngresosPanel();
+    graficaPanel.setPreferredSize(new Dimension(600, 250));
+
+    JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
+    centerPanel.setOpaque(false);
+    centerPanel.add(createModernScrollPane(tablaIngresosDia), BorderLayout.CENTER);
+    centerPanel.add(graficaPanel, BorderLayout.SOUTH);
+
+    ingresosPanel.add(centerPanel, BorderLayout.CENTER);
+
+    // =============================
+    // PARTE INFERIOR: CONTROL DE ALQUILERES
+    // =============================
+    JPanel controlPanel = new JPanel(new BorderLayout(10, 10));
+    controlPanel.setBackground(BG_CARD);
+    controlPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+
+    JLabel lblControl = new JLabel("🛠 Control de Alquileres por Día");
+    lblControl.setFont(new Font("Segoe UI", Font.BOLD, 18));
+
+    JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+    btnPanel.setOpaque(false);
+
+    JButton btnEditar = createModernButton("Editar", INFO, "✎");
+    JButton btnEliminar = createModernButton("Eliminar", DANGER, "🗑");
+    JButton btnActualizar = createModernButton("Actualizar", PRIMARY, "↻");
+
+    btnEditar.addActionListener(e -> editarAlquilerReporte());
+    btnEliminar.addActionListener(e -> eliminarAlquilerReporte());
+    btnActualizar.addActionListener(e -> {
+        loadIngresosPorDia();
+        loadControlAlquileres();
+        graficaPanel.repaint();
+    });
+
+    btnPanel.add(btnEditar);
+    btnPanel.add(btnEliminar);
+    btnPanel.add(btnActualizar);
+
+    modelControlAlquileres = new DefaultTableModel(
+        new String[]{"ID", "Fecha", "Turista", "Recurso", "Duración", "Total (S/)"}, 0
+    ) {
+        public boolean isCellEditable(int r, int c) { return false; }
+    };
+
+    tablaControlAlquileres = createModernTable(modelControlAlquileres);
+
+    controlPanel.add(lblControl, BorderLayout.NORTH);
+    controlPanel.add(btnPanel, BorderLayout.SOUTH);
+    controlPanel.add(createModernScrollPane(tablaControlAlquileres), BorderLayout.CENTER);
+
+    // =============================
+    // DISTRIBUCIÓN FINAL
+    // =============================
+    panel.add(ingresosPanel, BorderLayout.NORTH);
+    panel.add(controlPanel, BorderLayout.CENTER);
+
+    return panel;
+    }
+    private void loadIngresosPorDia() {
+
+    modelIngresosDia.setRowCount(0);
+
+    try (Connection conn = conexion.getConnection()) {
+
+        String sql = """
+            SELECT a.FechaDeInicio AS Fecha,
+                   SUM(r.TarifaPorHora * a.Duracion) AS Total
+            FROM ALQUILER a
+            JOIN DETALLEALQUILER d ON a.IDAlquiler = d.IDAlquiler
+            JOIN RECURSOS r ON d.IDRecurso = r.IDRecurso
+            GROUP BY a.FechaDeInicio
+            ORDER BY a.FechaDeInicio
+        """;
+
+        PreparedStatement pst = conn.prepareStatement(sql);
+        ResultSet rs = pst.executeQuery();
+
+        while (rs.next()) {
+            modelIngresosDia.addRow(new Object[]{
+                rs.getDate("Fecha"),
+                String.format("S/ %.2f", rs.getDouble("Total"))
+            });
+        }
+
+    } catch (SQLException e) {
+        JOptionPane.showMessageDialog(this, "Error en reporte de ingresos");
+    }
+}
+private void loadControlAlquileres() {
+
+    modelControlAlquileres.setRowCount(0);
+
+    try (Connection conn = conexion.getConnection()) {
+
+        String sql = """
+            SELECT a.IDAlquiler,
+                   a.FechaDeInicio,
+                   t.Nombre AS Turista,
+                   r.Recurso,
+                   a.Duracion,
+                   r.TarifaPorHora * a.Duracion AS Total
+            FROM ALQUILER a
+            JOIN DETALLEALQUILER d ON a.IDAlquiler = d.IDAlquiler
+            JOIN TURISTAA t ON d.IDTurista = t.IDTurista
+            JOIN RECURSOS r ON d.IDRecurso = r.IDRecurso
+            ORDER BY a.FechaDeInicio DESC
+        """;
+
+        PreparedStatement pst = conn.prepareStatement(sql);
+        ResultSet rs = pst.executeQuery();
+
+        while (rs.next()) {
+            modelControlAlquileres.addRow(new Object[]{
+                rs.getString("IDAlquiler"),
+                rs.getDate("FechaDeInicio"),
+                rs.getString("Turista"),
+                rs.getString("Recurso"),
+                rs.getInt("Duracion"),
+                String.format("S/ %.2f", rs.getDouble("Total"))
+            });
+        }
+
+    } catch (SQLException e) {
+        JOptionPane.showMessageDialog(this, "Error al cargar control de alquileres");
+    }
+}
+private void eliminarAlquilerReporte() {
+
+    int row = tablaControlAlquileres.getSelectedRow();
+    if (row == -1) {
+        JOptionPane.showMessageDialog(this, "Selecciona un alquiler");
+        return;
+    }
+
+    String id = modelControlAlquileres.getValueAt(row, 0).toString();
+
+    int confirm = JOptionPane.showConfirmDialog(
+        this,
+        "¿Eliminar el alquiler " + id + "?",
+        "Confirmar",
+        JOptionPane.YES_NO_OPTION
+    );
+
+    if (confirm == JOptionPane.YES_OPTION) {
+        try (Connection conn = conexion.getConnection()) {
+            PreparedStatement pst1 =
+                conn.prepareStatement("DELETE FROM DETALLEALQUILER WHERE IDAlquiler=?");
+            pst1.setString(1, id);
+            pst1.executeUpdate();
+
+            PreparedStatement pst2 =
+                conn.prepareStatement("DELETE FROM ALQUILER WHERE IDAlquiler=?");
+            pst2.setString(1, id);
+            pst2.executeUpdate();
+
+            loadControlAlquileres();
+            loadIngresosPorDia();
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al eliminar");
+        }
+    }
+}
+class GraficaIngresosPanel extends JPanel {
+
+    public GraficaIngresosPanel() {
+        setBackground(Color.WHITE);
+        setBorder(BorderFactory.createTitledBorder("📊 Ingresos por Día"));
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2 = (Graphics2D) g;
+
+        int width = getWidth();
+        int height = getHeight();
+        int padding = 40;
+
+        int rowCount = modelIngresosDia.getRowCount();
+        if (rowCount == 0) return;
+
+        // Obtener el máximo
+        double max = 0;
+        for (int i = 0; i < rowCount; i++) {
+            String val = modelIngresosDia.getValueAt(i, 1).toString()
+                    .replace("S/", "").trim();
+            double value = Double.parseDouble(val);
+            max = Math.max(max, value);
+        }
+
+        int barWidth = (width - 2 * padding) / rowCount;
+
+        for (int i = 0; i < rowCount; i++) {
+
+            String fecha = modelIngresosDia.getValueAt(i, 0).toString();
+            String val = modelIngresosDia.getValueAt(i, 1).toString()
+                    .replace("S/", "").trim();
+
+            double ingreso = Double.parseDouble(val);
+            int barHeight = (int) ((ingreso / max) * (height - 2 * padding));
+
+            int x = padding + i * barWidth;
+            int y = height - padding - barHeight;
+
+            // Barra
+            g2.setColor(PRIMARY);
+            g2.fillRect(x + 5, y, barWidth - 10, barHeight);
+
+            // Valor
+            g2.setColor(Color.BLACK);
+            g2.setFont(new Font("Segoe UI", Font.PLAIN, 10));
+            g2.drawString("S/ " + String.format("%.0f", ingreso), x + 10, y - 5);
+
+            // Fecha
+            g2.drawString(fecha, x + 10, height - 15);
+        }
+    }
+}
     private void cargarTotalIngresos() {
 
     try (Connection conn = conexion.getConnection()) {
@@ -1248,9 +1496,6 @@ public class adminframe extends JFrame {
 }
 
 
-    
-    
-    
     private void loadData() {
         loadRecursos();
         loadUsuarios();
