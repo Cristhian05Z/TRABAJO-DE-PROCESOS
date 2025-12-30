@@ -1192,26 +1192,34 @@ public class adminframe extends JFrame {
     try (Connection conn = conexion.getConnection()) {
 
         String sql = """
-            SELECT SUM(r.TarifaPorHora * a.Duracion) AS Total
+            SELECT 
+                SUM(
+                    r.TarifaPorHora * a.Duracion *
+                    (1 - ISNULL(p.PorcentajeDescuento, 0) / 100.0)
+                ) AS IngresoReal
             FROM ALQUILER a
-            JOIN DETALLEALQUILER d ON a.IDAlquiler = d.IDAlquiler
-            JOIN RECURSOS r ON d.IDRecurso = r.IDRecurso
+            JOIN DETALLEALQUILER da ON a.IDAlquiler = da.IDAlquiler
+            JOIN RECURSOS r ON da.IDRecurso = r.IDRecurso
+            LEFT JOIN PROMOCION p ON da.IDPromocion = p.IDPromocion
         """;
 
         PreparedStatement pst = conn.prepareStatement(sql);
         ResultSet rs = pst.executeQuery();
 
         if (rs.next()) {
-            double total = rs.getDouble("Total");
-            lblTotalIngresos.setText(
-                    String.format("Total Ingresos: S/ %.2f", total)
-            );
+            double total = rs.getDouble("IngresoReal");
+            lblTotalIngresos.setText(String.format("S/ %.2f", total));
         }
 
     } catch (SQLException e) {
-        lblTotalIngresos.setText("Total Ingresos: ERROR");
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this,
+            "Error al calcular ingresos",
+            "Error",
+            JOptionPane.ERROR_MESSAGE);
     }
 }
+
 
     
     
