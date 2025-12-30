@@ -122,6 +122,7 @@ public class turistaframe extends JFrame {
     // ============================================
     // HEADER
     // ============================================
+<<<<<<< HEAD
     private JPanel crearHeader() {
         JPanel header = new JPanel(new BorderLayout(20, 0));
         header.setBackground(BG_SECONDARY);
@@ -163,6 +164,81 @@ public class turistaframe extends JFrame {
         
         return header;
     }
+=======
+    private JPanel createModernHeader() {
+
+    JPanel header = new JPanel(new BorderLayout(20, 0));
+    header.setBackground(BG_CARD);
+    header.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createMatteBorder(0, 0, 2, 0, PRIMARY),
+        BorderFactory.createEmptyBorder(20, 30, 20, 30)
+    ));
+
+    // =========================
+    // LADO IZQUIERDO (TÍTULO)
+    // =========================
+    JPanel leftPanel = new JPanel(new GridLayout(2, 1, 0, 5));
+    leftPanel.setOpaque(false);
+
+    JLabel titleLabel = new JLabel("🏖️ Portal de Turista");
+    titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+    titleLabel.setForeground(TEXT_PRIMARY);
+
+    JLabel subtitle = new JLabel("Sistema de Alquiler Turístico");
+    subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+    subtitle.setForeground(TEXT_SECONDARY);
+
+    leftPanel.add(titleLabel);
+    leftPanel.add(subtitle);
+
+    // =========================
+    // LADO DERECHO (USUARIO + FOTO)
+    // =========================
+    JPanel rightPanel = new JPanel(new BorderLayout(10, 8));
+    rightPanel.setOpaque(false);
+
+    JLabel lblBienvenido = new JLabel(
+            "BIENVENIDO " + currentUser.getNombre().toUpperCase()
+    );
+    lblBienvenido.setFont(new Font("Segoe UI", Font.BOLD, 14));
+    lblBienvenido.setForeground(TEXT_PRIMARY);
+    lblBienvenido.setHorizontalAlignment(SwingConstants.RIGHT);
+
+    // Imagen del usuario
+    ImageIcon icon = new ImageIcon(
+            getClass().getResource("/Imagen/foto.jpg")
+    );
+    Image img = icon.getImage().getScaledInstance(45, 45, Image.SCALE_SMOOTH);
+    JLabel lblFoto = new JLabel(new ImageIcon(img));
+
+    JPanel userPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+    userPanel.setOpaque(false);
+    userPanel.add(lblBienvenido);
+    userPanel.add(lblFoto);
+
+    // =========================
+    // BOTONES (ABAJO)
+    // =========================
+    JButton btnCatalogo = createModernButton("Catálogo", INFO, "🖼");
+    btnCatalogo.addActionListener(e -> new CatalogoFrame());
+
+    JButton btnLogout = createModernButton("Cerrar Sesión", DANGER, "⎋");
+    btnLogout.addActionListener(e -> logout());
+
+    JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+    buttonsPanel.setOpaque(false);
+    buttonsPanel.add(btnCatalogo);
+    buttonsPanel.add(btnLogout);
+
+    rightPanel.add(userPanel, BorderLayout.NORTH);
+    rightPanel.add(buttonsPanel, BorderLayout.SOUTH);
+
+    header.add(leftPanel, BorderLayout.WEST);
+    header.add(rightPanel, BorderLayout.EAST);
+
+    return header;
+}
+>>>>>>> 38b3c0186d81551f9d2476cb895bdee46e2def6b
     
     // ============================================
     // TABS
