@@ -1493,6 +1493,82 @@ class GraficaIngresosPanel extends JPanel {
             "Error",
             JOptionPane.ERROR_MESSAGE);
     }
+} 
+    private void editarAlquilerReporte() {
+
+    int row = tablaControlAlquileres.getSelectedRow();
+
+    if (row == -1) {
+        JOptionPane.showMessageDialog(this, "Selecciona un alquiler");
+        return;
+    }
+
+    String idAlquiler = modelControlAlquileres.getValueAt(row, 0).toString();
+    Date fechaActual = (Date) modelControlAlquileres.getValueAt(row, 1);
+    int duracionActual = Integer.parseInt(
+        modelControlAlquileres.getValueAt(row, 4).toString()
+    );
+
+    // =============================
+    // FORMULARIO
+    // =============================
+    JTextField txtFecha = new JTextField(fechaActual.toString());
+    JTextField txtDuracion = new JTextField(String.valueOf(duracionActual));
+
+    JPanel panel = new JPanel(new GridLayout(2, 2, 10, 10));
+    panel.add(new JLabel("Fecha (YYYY-MM-DD):"));
+    panel.add(txtFecha);
+    panel.add(new JLabel("Duración (horas):"));
+    panel.add(txtDuracion);
+
+    int result = JOptionPane.showConfirmDialog(
+        this,
+        panel,
+        "Editar Alquiler " + idAlquiler,
+        JOptionPane.OK_CANCEL_OPTION,
+        JOptionPane.PLAIN_MESSAGE
+    );
+
+    if (result != JOptionPane.OK_OPTION) return;
+
+    try {
+        Date nuevaFecha = Date.valueOf(txtFecha.getText());
+        int nuevaDuracion = Integer.parseInt(txtDuracion.getText());
+
+        if (nuevaDuracion <= 0) {
+            JOptionPane.showMessageDialog(this, "Duración inválida");
+            return;
+        }
+
+        // =============================
+        // UPDATE EN BD
+        // =============================
+        try (Connection conn = conexion.getConnection()) {
+
+            String sql = """
+                UPDATE ALQUILER
+                SET FechaDeInicio = ?, Duracion = ?
+                WHERE IDAlquiler = ?
+            """;
+
+            PreparedStatement pst = conn.prepareStatement(sql);
+            pst.setDate(1, nuevaFecha);
+            pst.setInt(2, nuevaDuracion);
+            pst.setString(3, idAlquiler);
+            pst.executeUpdate();
+
+            JOptionPane.showMessageDialog(this, "Alquiler actualizado");
+
+            // Refrescar reportes
+            loadControlAlquileres();
+            loadIngresosPorDia();
+        }
+
+    } catch (IllegalArgumentException e) {
+        JOptionPane.showMessageDialog(this, "Formato de fecha incorrecto");
+    } catch (SQLException e) {
+        JOptionPane.showMessageDialog(this, "Error al actualizar alquiler");
+    }
 }
 
 
