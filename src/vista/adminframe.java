@@ -50,7 +50,6 @@ public class adminframe extends JFrame {
         add(createModernTabbedPane(), BorderLayout.CENTER);
         
         loadData();
-        
     }
     
     // ============================================
@@ -832,7 +831,7 @@ public class adminframe extends JFrame {
             try (Connection conn = conexion.getConnection()) {
                 String nuevoID = generarNuevoIDTurista(conn);
                 
-                String sql = "INSERT INTO TURISTAA (IDTurista, Nombre, Apellido, DNI, Nacionalidad, Telefono, Email, IDUsuario) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                String sql = "INSERT INTO TURISTAA (IDTurista, Nombre, Apellido, DNI, Nacionalidad, Telefono, Email) VALUES (?, ?, ?, ?, ?, ?, ?)";
                 PreparedStatement pst = conn.prepareStatement(sql);
                 pst.setString(1, nuevoID);
                 pst.setString(2, txtNombre.getText());
@@ -841,7 +840,6 @@ public class adminframe extends JFrame {
                 pst.setString(5, txtNacionalidad.getText());
                 pst.setString(6, txtTelefono.getText());
                 pst.setString(7, txtEmail.getText());
-                pst.setString(8, currentUser.getIDUsuario());
                 pst.executeUpdate();
                 
                 JOptionPane.showMessageDialog(this, "Turista agregado con ID: " + nuevoID);
