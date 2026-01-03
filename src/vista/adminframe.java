@@ -897,33 +897,57 @@ public class adminframe extends JFrame {
         }
     }
     
-    private void deleteTurista() {
-        int selectedRow = tablaTuristas.getSelectedRow();
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Selecciona un turista");
+    private void deleteTurista(int idTurista) {
+
+    String sqlCheck =
+        "SELECT COUNT(IDAlquiler) FROM ALQUILER WHERE IDTurista = ?";
+    String sqlDelete =
+        "DELETE FROM TURISTAA WHERE IDTurista = ?";
+
+    try (Connection con = conexion.getConnection()) {
+
+        // 1️⃣ Verificar si tiene alquiler(es)
+        PreparedStatement psCheck = con.prepareStatement(sqlCheck);
+        psCheck.setInt(1, idTurista);
+
+        ResultSet rs = psCheck.executeQuery();
+        rs.next();
+
+        int totalAlquileres = rs.getInt(1);
+
+        // 2️⃣ Si ya alquiló → NO eliminar
+        if (totalAlquileres > 0) {
+            JOptionPane.showMessageDialog(
+                this,
+                "No se puede eliminar a un turista que ya haya hecho un alquiler",
+                "Operación no permitida",
+                JOptionPane.WARNING_MESSAGE
+            );
             return;
         }
-        
-        String id = modelTuristas.getValueAt(selectedRow, 0).toString();
-        int confirm = JOptionPane.showConfirmDialog(this, 
-            "¿Eliminar este turista?", 
-            "Confirmar", 
-            JOptionPane.YES_NO_OPTION);
-            
-        if (confirm == JOptionPane.YES_OPTION) {
-            try (Connection conn = conexion.getConnection()) {
-                String sql = "DELETE FROM TURISTAA WHERE IDTurista=?";
-                PreparedStatement pst = conn.prepareStatement(sql);
-                pst.setString(1, id);
-                pst.executeUpdate();
-                
-                JOptionPane.showMessageDialog(this, "Turista eliminado");
-                loadTuristas();
-            } catch (SQLException e) {
-                JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
-            }
-        }
+
+        // 3️⃣ Si no alquiló → eliminar
+        PreparedStatement psDelete = con.prepareStatement(sqlDelete);
+        psDelete.setInt(1, idTurista);
+        psDelete.executeUpdate();
+
+        JOptionPane.showMessageDialog(
+            this,
+            "Turista eliminado correctamente",
+            "Éxito",
+            JOptionPane.INFORMATION_MESSAGE
+        );
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(
+            this,
+            "Error al eliminar el turista",
+            "Error",
+            JOptionPane.ERROR_MESSAGE
+        );
     }
+}
     
     private void loadAlquileres() {
         modelAlquileres.setRowCount(0);
