@@ -274,24 +274,23 @@ public class adminframe extends JFrame {
         btnEdit.addActionListener(e -> editTurista());
         btnDelete.addActionListener(e -> {
 
-        int fila = tablaTuristas.getSelectedRow();
+            int fila = tablaTuristas.getSelectedRow();
 
-        if (fila == -1) {
-            JOptionPane.showMessageDialog(
-                this,
-                "Seleccione un turista",
-                "Aviso",
-                JOptionPane.WARNING_MESSAGE
-            );
-            return;
-        }
+            if (fila == -1) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Seleccione un turista",
+                    "Aviso",
+                    JOptionPane.WARNING_MESSAGE
+                );
+                return;
+            }
 
-        int idTurista = Integer.parseInt(
-            tablaTuristas.getValueAt(fila, 0).toString()
-        );
+            String idTurista =
+            tablaTuristas.getValueAt(fila, 0).toString();
 
-        deleteTurista(idTurista);
-    });
+            deleteTurista(idTurista);
+        });
         btnRefresh.addActionListener(e -> loadTuristas());
         
         btnPanel.add(btnAdd);
@@ -916,7 +915,7 @@ public class adminframe extends JFrame {
         }
     }
     
-    private void deleteTurista(int idTurista) {
+    private void deleteTurista(String idTurista) {
 
         String sqlCheck =
             "SELECT COUNT(IDAlquiler) FROM ALQUILER WHERE IDTurista = ?";
@@ -927,7 +926,7 @@ public class adminframe extends JFrame {
 
             // 1️⃣ Verificar si tiene alquiler(es)
             PreparedStatement psCheck = con.prepareStatement(sqlCheck);
-            psCheck.setInt(1, idTurista);
+            psCheck.setString(1, idTurista);
 
             ResultSet rs = psCheck.executeQuery();
             rs.next();
@@ -947,7 +946,7 @@ public class adminframe extends JFrame {
 
             // 3️⃣ Si no alquiló → eliminar
             PreparedStatement psDelete = con.prepareStatement(sqlDelete);
-            psDelete.setInt(1, idTurista);
+            psDelete.setString(1, idTurista);
             psDelete.executeUpdate();
 
             JOptionPane.showMessageDialog(
