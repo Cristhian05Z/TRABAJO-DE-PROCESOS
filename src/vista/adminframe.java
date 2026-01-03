@@ -1332,6 +1332,9 @@ String estadoBD = rs.getString("Estado");
     panel.add(ingresosPanel, BorderLayout.NORTH);
     panel.add(controlPanel, BorderLayout.CENTER);
 
+    loadIngresosPorDia();
+    loadControlAlquileres();
+    
     return panel;
     }
     private void loadIngresosPorDia() {
