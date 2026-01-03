@@ -520,12 +520,22 @@ public class adminframe extends JFrame {
             ResultSet rs = stmt.executeQuery(sql);
             
             while (rs.next()) {
+String estadoBD = rs.getString("Estado");
+    String estadoMostrar;
+    
+    // Solo cambiar visualización a "Disponible" o "No Disponible"
+    if (estadoBD.equalsIgnoreCase("disponible")) {
+        estadoMostrar = "Disponible";
+    } else {
+        estadoMostrar = "No Disponible";  
+    }
+
                 modelRecursos.addRow(new Object[]{
                     rs.getString("IDRecurso"),
                     rs.getString("Recurso"),
                     rs.getString("Descripcion"),
                     String.format("S/ %.2f", rs.getDouble("TarifaPorHora")),
-                    rs.getString("Estado")
+                    estadoMostrar
                 });
             }
         } catch (SQLException e) {

@@ -592,12 +592,21 @@ private JLabel crearPromoLabel(String texto) {
             ResultSet rs = stmt.executeQuery(sql);
             
             while (rs.next()) {
+                String estadoBD = rs.getString("Estado");
+    String estadoMostrar;
+    
+    if (estadoBD.equalsIgnoreCase("disponible")) {
+        estadoMostrar = "Disponible";
+    } else {
+        estadoMostrar = "No Disponible";
+    }
+
                 modelRecursos.addRow(new Object[]{
                     rs.getString("IDRecurso"),
                     rs.getString("Recurso"),
                     rs.getString("Descripcion"),
                     String.format("S/ %.2f", rs.getDouble("TarifaPorHora")),
-                    rs.getString("Estado")
+                    estadoMostrar
                 });
             }
         } catch (SQLException e) {
@@ -916,6 +925,12 @@ if (confirm != JOptionPane.YES_OPTION) return;
                 pstDetalle.setString(5,promocionAplicada != null? promocionAplicada.getIDPromocion(): null
 );
                 pstDetalle.executeUpdate();
+          // Actualizar estado del recurso a "alquilado"
+String sqlUpdateEstado = "UPDATE RECURSOS SET Estado = 'alquilado' WHERE IDRecurso = ?";
+PreparedStatement pstUpdateEstado = conn.prepareStatement(sqlUpdateEstado);
+pstUpdateEstado.setString(1, item.idRecurso);
+pstUpdateEstado.executeUpdate();
+
             }
 
             conn.commit();

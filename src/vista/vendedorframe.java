@@ -430,16 +430,25 @@ public class vendedorframe extends JFrame {
     private void loadProducts() {
         modelRecursos.setRowCount(0);
         try (Connection conn = conexion.getConnection()) {
-            String sql = "SELECT * FROM RECURSOS WHERE Estado = 'DISPONIBLE' OR Estado = 'disponible'";
+String sql = "SELECT * FROM RECURSOS WHERE Estado = 'disponible'";
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
             
             while (rs.next()) {
+               String estadoBD = rs.getString("Estado");
+    String estadoMostrar;
+    
+    if (estadoBD.equalsIgnoreCase("disponible")) {
+        estadoMostrar = "Disponible";
+    } else {
+        estadoMostrar = "No Disponible";
+    }
+
                 modelRecursos.addRow(new Object[]{
                     rs.getString("IDRecurso"),
                     rs.getString("Recurso"),
                     String.format("S/ %.2f", rs.getDouble("TarifaPorHora")),
-                    rs.getString("Estado")
+                    estadoMostrar
                 });
             }
         } catch (SQLException e) {
