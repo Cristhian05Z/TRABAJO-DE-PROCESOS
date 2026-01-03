@@ -2,8 +2,6 @@ package vista;
 
 import javax.swing.*;
 import javax.swing.table.*;
-
-
 import DAO.DetalleAlquilerDAO;
 import DAO.PromocionDAO;
 import database.conexion;
@@ -17,27 +15,31 @@ import java.util.ArrayList;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-
 public class turistaframe extends JFrame {
     
-    // Paleta de colores oscuros elegantes
-    private static final Color PRIMARY = new Color(59, 130, 246); // Azul brillante
+    // Paleta de colores claros y modernos
+    private static final Color PRIMARY = new Color(59, 130, 246); // Azul principal
     private static final Color PRIMARY_DARK = new Color(37, 99, 235);
-    private static final Color SECONDARY = new Color(16, 185, 129); // Verde esmeralda
+    private static final Color SECONDARY = new Color(16, 185, 129); // Verde
     private static final Color SUCCESS = new Color(34, 197, 94);
     private static final Color DANGER = new Color(239, 68, 68);
     private static final Color WARNING = new Color(251, 146, 60);
     private static final Color INFO = new Color(14, 165, 233);
     
-    // Fondos oscuros
-    private static final Color BG_DARK = new Color(15, 23, 42); // Slate oscuro
-    private static final Color BG_CARD = new Color(30, 41, 59); // Slate medio
-    private static final Color BG_HOVER = new Color(51, 65, 85);
+    // Fondos CLAROS
+    private static final Color BG_LIGHT = new Color(248, 250, 252); // Fondo claro
+    private static final Color BG_CARD = new Color(255, 255, 255); // Cards blancas
+    private static final Color BG_HOVER = new Color(243, 244, 246); // Hover claro
     
-    // Textos
-    private static final Color TEXT_PRIMARY = new Color(248, 250, 252);
-    private static final Color TEXT_SECONDARY = new Color(148, 163, 184);
-    private static final Color BORDER_COLOR = new Color(51, 65, 85);
+    // Textos uniformes
+    private static final Color TEXT_PRIMARY = new Color(17, 24, 39); // Texto oscuro
+    private static final Color TEXT_SECONDARY = new Color(107, 114, 128); // Texto secundario
+    private static final Color BORDER_COLOR = new Color(229, 231, 235); // Bordes claros
+    
+    // FUENTE UNIFORME PARA TODO
+    private static final Font FONT_MAIN = new Font("Segoe UI", Font.BOLD, 14);
+    private static final Font FONT_REGULAR = new Font("Segoe UI", Font.PLAIN, 13);
+    private static final Font FONT_SMALL = new Font("Segoe UI", Font.PLAIN, 12);
     
     private Usuario currentUser;
     private JTable tablaRecursos;
@@ -50,6 +52,13 @@ public class turistaframe extends JFrame {
     private ArrayList<CartItem> cart = new ArrayList<>();
     private JTabbedPane tabbedPane;
     private String idTurista = "";
+    
+    // Fuente consistente para toda la aplicación
+    private static final Font FONT_TITLE = new Font("Segoe UI", Font.BOLD, 16);
+    private static final Font FONT_SUBTITLE = new Font("Segoe UI", Font.PLAIN, 13);
+    private static final Font FONT_BUTTON = new Font("Segoe UI", Font.BOLD, 12);
+    private static final Font FONT_TABLE = new Font("Segoe UI", Font.PLAIN, 12);
+    private static final Font FONT_HEADER = new Font("Segoe UI", Font.BOLD, 12);
     
     class CartItem {
         String idRecurso;
@@ -78,10 +87,10 @@ public class turistaframe extends JFrame {
         }
         
         setTitle("Portal Turista - Sistema de Alquiler");
-        setSize(1200, 750);
+        setSize(1400, 800); // ✅ AUMENTADO para mejor espacio
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        getContentPane().setBackground(BG_DARK);
+        getContentPane().setBackground(BG_LIGHT);
         
         setLayout(new BorderLayout(0, 0));
         
@@ -97,95 +106,88 @@ public class turistaframe extends JFrame {
     }
     
     // ============================================
-    // HEADER MODERNO
+    // HEADER MODERNO (MODO CLARO)
     // ============================================
     private JPanel createModernHeader() {
+        JPanel header = new JPanel(new BorderLayout(20, 0));
+        header.setBackground(BG_CARD);
+        header.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 2, 0, PRIMARY),
+            BorderFactory.createEmptyBorder(15, 25, 15, 25) // ✅ Reducido padding
+        ));
 
-    JPanel header = new JPanel(new BorderLayout(20, 0));
-    header.setBackground(BG_CARD);
-    header.setBorder(BorderFactory.createCompoundBorder(
-        BorderFactory.createMatteBorder(0, 0, 2, 0, PRIMARY),
-        BorderFactory.createEmptyBorder(20, 30, 20, 30)
-    ));
+        // LADO IZQUIERDO (TÍTULO)
+        JPanel leftPanel = new JPanel(new GridLayout(2, 1, 0, 3)); // ✅ Menos espacio
+        leftPanel.setOpaque(false);
 
-    // =========================
-    // LADO IZQUIERDO (TÍTULO)
-    // =========================
-    JPanel leftPanel = new JPanel(new GridLayout(2, 1, 0, 5));
-    leftPanel.setOpaque(false);
+        JLabel titleLabel = new JLabel("🏖️ Portal de Turista");
+        titleLabel.setFont(FONT_MAIN);
+        titleLabel.setForeground(TEXT_PRIMARY);
 
-    JLabel titleLabel = new JLabel("🏖️ Portal de Turista");
-    titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-    titleLabel.setForeground(TEXT_PRIMARY);
+        JLabel subtitle = new JLabel("Sistema de Alquiler Turístico");
+        subtitle.setFont(FONT_SMALL);
+        subtitle.setForeground(TEXT_SECONDARY);
 
-    JLabel subtitle = new JLabel("Sistema de Alquiler Turístico");
-    subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-    subtitle.setForeground(TEXT_SECONDARY);
+        leftPanel.add(titleLabel);
+        leftPanel.add(subtitle);
 
-    leftPanel.add(titleLabel);
-    leftPanel.add(subtitle);
+        // LADO DERECHO (USUARIO + FOTO)
+        JPanel rightPanel = new JPanel(new BorderLayout(10, 6)); // ✅ Menos espacio
+        rightPanel.setOpaque(false);
 
-    // =========================
-    // LADO DERECHO (USUARIO + FOTO)
-    // =========================
-    JPanel rightPanel = new JPanel(new BorderLayout(10, 8));
-    rightPanel.setOpaque(false);
+        JLabel lblBienvenido = new JLabel(
+                "BIENVENIDO " + currentUser.getNombre().toUpperCase()
+        );
+        lblBienvenido.setFont(FONT_REGULAR);
+        lblBienvenido.setForeground(TEXT_PRIMARY);
+        lblBienvenido.setHorizontalAlignment(SwingConstants.RIGHT);
 
-    JLabel lblBienvenido = new JLabel(
-            "BIENVENIDO " + currentUser.getNombre().toUpperCase()
-    );
-    lblBienvenido.setFont(new Font("Segoe UI", Font.BOLD, 14));
-    lblBienvenido.setForeground(TEXT_PRIMARY);
-    lblBienvenido.setHorizontalAlignment(SwingConstants.RIGHT);
+        // Imagen del usuario
+        ImageIcon icon = new ImageIcon(
+                getClass().getResource("/Imagen/foto.jpg")
+        );
+        Image img = icon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH); // ✅ Más pequeña
+        JLabel lblFoto = new JLabel(new ImageIcon(img));
 
-    // Imagen del usuario
-    ImageIcon icon = new ImageIcon(
-            getClass().getResource("/Imagen/foto.jpg")
-    );
-    Image img = icon.getImage().getScaledInstance(45, 45, Image.SCALE_SMOOTH);
-    JLabel lblFoto = new JLabel(new ImageIcon(img));
+        JPanel userPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        userPanel.setOpaque(false);
+        userPanel.add(lblBienvenido);
+        userPanel.add(lblFoto);
 
-    JPanel userPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-    userPanel.setOpaque(false);
-    userPanel.add(lblBienvenido);
-    userPanel.add(lblFoto);
+        // BOTONES (ABAJO)
+        JButton btnCatalogo = createModernButton("Catálogo", INFO, "🖼");
+        btnCatalogo.addActionListener(e -> new CatalogoFrame());
 
-    // =========================
-    // BOTONES (ABAJO)
-    // =========================
-    JButton btnCatalogo = createModernButton("Catálogo", INFO, "🖼");
-    btnCatalogo.addActionListener(e -> new CatalogoFrame());
+        JButton btnLogout = createModernButton("Cerrar Sesión", DANGER, "⎋");
+        btnLogout.addActionListener(e -> logout());
 
-    JButton btnLogout = createModernButton("Cerrar Sesión", DANGER, "⎋");
-    btnLogout.addActionListener(e -> logout());
+        JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        buttonsPanel.setOpaque(false);
+        buttonsPanel.add(btnCatalogo);
+        buttonsPanel.add(btnLogout);
 
-    JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-    buttonsPanel.setOpaque(false);
-    buttonsPanel.add(btnCatalogo);
-    buttonsPanel.add(btnLogout);
+        rightPanel.add(userPanel, BorderLayout.NORTH);
+        rightPanel.add(buttonsPanel, BorderLayout.SOUTH);
 
-    rightPanel.add(userPanel, BorderLayout.NORTH);
-    rightPanel.add(buttonsPanel, BorderLayout.SOUTH);
+        header.add(leftPanel, BorderLayout.WEST);
+        header.add(rightPanel, BorderLayout.EAST);
 
-    header.add(leftPanel, BorderLayout.WEST);
-    header.add(rightPanel, BorderLayout.EAST);
-
-    return header;
-}
+        return header;
+    }
     
     // ============================================
-    // TABS MODERNOS
+    // TABS MODERNOS (MODO CLARO)
     // ============================================
     private JTabbedPane createModernTabs() {
         tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-        tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        tabbedPane.setBackground(BG_DARK);
+        tabbedPane.setFont(FONT_REGULAR);
+        tabbedPane.setBackground(BG_LIGHT);
         tabbedPane.setForeground(TEXT_PRIMARY);
-        tabbedPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        tabbedPane.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8)); // ✅ Menos margen
         
-        // Personalizar apariencia de tabs
+        // Personalizar tabs claros
         UIManager.put("TabbedPane.selected", PRIMARY);
-        UIManager.put("TabbedPane.contentAreaColor", BG_DARK);
+        UIManager.put("TabbedPane.contentAreaColor", BG_LIGHT);
         
         tabbedPane.addTab("  🛒  Alquilar Recursos  ", createAlquilerPanel());
         tabbedPane.addTab("  📋  Mis Alquileres  ", createMyAlquileresPanel());
@@ -194,51 +196,45 @@ public class turistaframe extends JFrame {
     }
     
     // ============================================
-    // PANEL DE ALQUILER
+    // PANEL DE ALQUILER ✅ LAYOUT OPTIMIZADO
     // ============================================
     private JPanel createAlquilerPanel() {
-        JPanel mainPanel = new JPanel(new BorderLayout(0, 15));
-        mainPanel.setBackground(BG_DARK);
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        JPanel mainPanel = new JPanel(new BorderLayout(12, 8)); // ✅ Espaciado uniforme
+        mainPanel.setBackground(BG_LIGHT);
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
         
-        // Panel superior - Recursos disponibles
+        // ✅ SplitPane HORIZONTAL para mejor distribución
+        JSplitPane mainSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        mainSplit.setDividerLocation(950); // ✅ Recursos 70%, Carrito+Promo 30%
+        mainSplit.setDividerSize(6);
+        mainSplit.setBackground(BG_LIGHT);
+        mainSplit.setBorder(null);
+        
+        // Panel IZQUIERDO: Recursos (70%)
         JPanel recursosPanel = createRecursosDisponiblesPanel();
         
-        // Panel inferior - Carrito
-        JPanel carritoPanel = createCarritoPanel();
+        // Panel DERECHO: Carrito + Promociones (30%)
+        JPanel rightPanel = new JPanel(new BorderLayout(8, 8));
+        rightPanel.setOpaque(false);
+        rightPanel.add(createCarritoPanel(), BorderLayout.CENTER);
+        rightPanel.add(createPromocionesPanel(), BorderLayout.SOUTH);
         
-        // Dividir verticalmente
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, recursosPanel, carritoPanel);
-        splitPane.setDividerLocation(320);
-        splitPane.setDividerSize(8);
-        splitPane.setBackground(BG_DARK);
-        splitPane.setBorder(null);
+        mainSplit.setLeftComponent(recursosPanel);
+        mainSplit.setRightComponent(rightPanel);
         
-        // Panel derecho - Promociones
-        JPanel promoPanel = createPromocionesPanel();
-
-// Contenedor central
-        JPanel centerPanel = new JPanel(new BorderLayout(15, 0));
-        centerPanel.setOpaque(false);
-
-        centerPanel.add(splitPane, BorderLayout.CENTER);
-        centerPanel.add(promoPanel, BorderLayout.EAST);
-
-        mainPanel.add(centerPanel, BorderLayout.CENTER);
-
-        
+        mainPanel.add(mainSplit, BorderLayout.CENTER);
         return mainPanel;
     }
     
     // ============================================
-    // PANEL DE RECURSOS DISPONIBLES
+    // RECURSOS DISPONIBLES (TAMAÑO UNIFORME)
     // ============================================
     private JPanel createRecursosDisponiblesPanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        JPanel panel = new JPanel(new BorderLayout(8, 8));
         panel.setBackground(BG_CARD);
         panel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(BORDER_COLOR, 1),
-            BorderFactory.createEmptyBorder(15, 15, 15, 15)
+            BorderFactory.createEmptyBorder(12, 12, 12, 12)
         ));
         
         // Header
@@ -246,28 +242,26 @@ public class turistaframe extends JFrame {
         headerPanel.setOpaque(false);
         
         JLabel titleLabel = new JLabel("🏖️ Recursos Disponibles");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        titleLabel.setFont(FONT_MAIN);
         titleLabel.setForeground(TEXT_PRIMARY);
         
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         btnPanel.setOpaque(false);
         
         JButton btnRefresh = createModernButton("Actualizar", INFO, "↻");
-        btnRefresh.setPreferredSize(new Dimension(130, 36));
+        btnRefresh.setPreferredSize(new Dimension(120, 38)); // ✅ Tamaño uniforme
         btnRefresh.addActionListener(e -> loadRecursos());
         
         btnPanel.add(btnRefresh);
         headerPanel.add(titleLabel, BorderLayout.WEST);
         headerPanel.add(btnPanel, BorderLayout.EAST);
         
-        // Tabla
+        // Tabla ✅ Tamaño uniforme
         modelRecursos = new DefaultTableModel(
-            new String[]{"ID", "Recurso", "Descripción", "Tarifa/Hora", "Estado"}, 0
+            new String[]{"ID", "Recurso", "Descripción", "Tarifa/H", "Estado"}, 0
         ) {
             @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+            public boolean isCellEditable(int row, int column) { return false; }
         };
         
         tablaRecursos = createModernTable(modelRecursos);
@@ -276,11 +270,9 @@ public class turistaframe extends JFrame {
         // Botón agregar
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         bottomPanel.setOpaque(false);
-        bottomPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
         
         JButton btnAddToCart = createModernButton("➕ Agregar al Carrito", PRIMARY, "");
-        btnAddToCart.setPreferredSize(new Dimension(200, 42));
-        btnAddToCart.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnAddToCart.setPreferredSize(new Dimension(180, 42)); // ✅ Tamaño uniforme
         btnAddToCart.addActionListener(e -> addToCart());
         
         bottomPanel.add(btnAddToCart);
@@ -293,32 +285,32 @@ public class turistaframe extends JFrame {
     }
     
     // ============================================
-    // PANEL DE CARRITO
+    // CARRITO ✅ OPTIMIZADO Y SIEMPRE VISIBLE
     // ============================================
     private JPanel createCarritoPanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        JPanel panel = new JPanel(new BorderLayout(8, 8));
         panel.setBackground(BG_CARD);
         panel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(SECONDARY, 2),
-            BorderFactory.createEmptyBorder(15, 15, 15, 15)
+            BorderFactory.createEmptyBorder(12, 12, 12, 12)
         ));
         
         // Header
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
         
-        JLabel titleLabel = new JLabel("🛒 Mi Carrito de Compras");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        JLabel titleLabel = new JLabel("🛒 Mi Carrito");
+        titleLabel.setFont(FONT_MAIN);
         titleLabel.setForeground(TEXT_PRIMARY);
         
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         btnPanel.setOpaque(false);
         
         JButton btnRemove = createModernButton("Quitar", DANGER, "✕");
         JButton btnClear = createModernButton("Limpiar", WARNING, "🗑");
         
-        btnRemove.setPreferredSize(new Dimension(110, 36));
-        btnClear.setPreferredSize(new Dimension(110, 36));
+        btnRemove.setPreferredSize(new Dimension(90, 36)); // ✅ Tamaños uniformes
+        btnClear.setPreferredSize(new Dimension(90, 36));
         
         btnRemove.addActionListener(e -> removeFromCart());
         btnClear.addActionListener(e -> clearCart());
@@ -329,38 +321,35 @@ public class turistaframe extends JFrame {
         headerPanel.add(titleLabel, BorderLayout.WEST);
         headerPanel.add(btnPanel, BorderLayout.EAST);
         
-        // Tabla
+        // Tabla carrito ✅ Columnas optimizadas
         modelCart = new DefaultTableModel(
             new String[]{"Recurso", "Tarifa", "Horas", "Subtotal"}, 0
         ) {
             @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+            public boolean isCellEditable(int row, int column) { return false; }
         };
         
         tableCart = createModernTable(modelCart);
         JScrollPane scrollPane = createModernScrollPane(tableCart);
         
-        // Panel de total y confirmar
-        JPanel bottomPanel = new JPanel(new BorderLayout(0, 15));
+        // Total y confirmar ✅ Compacto
+        JPanel bottomPanel = new JPanel(new BorderLayout(0, 10));
         bottomPanel.setOpaque(false);
-        bottomPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
         
         // Total
         JPanel totalPanel = new JPanel(new BorderLayout());
         totalPanel.setBackground(BG_HOVER);
         totalPanel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(SECONDARY, 2),
-            BorderFactory.createEmptyBorder(15, 20, 15, 20)
+            BorderFactory.createEmptyBorder(10, 15, 10, 15)
         ));
         
         JLabel lblTotalText = new JLabel("TOTAL A PAGAR:");
-        lblTotalText.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        lblTotalText.setFont(FONT_REGULAR);
         lblTotalText.setForeground(TEXT_SECONDARY);
         
         lblTotal = new JLabel("S/ 0.00");
-        lblTotal.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        lblTotal.setFont(FONT_MAIN);
         lblTotal.setForeground(SECONDARY);
         lblTotal.setHorizontalAlignment(SwingConstants.RIGHT);
         
@@ -368,17 +357,12 @@ public class turistaframe extends JFrame {
         totalPanel.add(lblTotal, BorderLayout.EAST);
         
         // Botón confirmar
-        JButton btnConfirm = createModernButton("✓ Confirmar Alquiler", SUCCESS, "");
-        btnConfirm.setPreferredSize(new Dimension(250, 50));
-        btnConfirm.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        JButton btnConfirm = createModernButton("✓ Confirmar", SUCCESS, "");
+        btnConfirm.setPreferredSize(new Dimension(140, 44)); // ✅ Tamaño uniforme
         btnConfirm.addActionListener(e -> processAlquiler());
         
-        JPanel btnConfirmPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        btnConfirmPanel.setOpaque(false);
-        btnConfirmPanel.add(btnConfirm);
-        
         bottomPanel.add(totalPanel, BorderLayout.NORTH);
-        bottomPanel.add(btnConfirmPanel, BorderLayout.SOUTH);
+        bottomPanel.add(btnConfirm, BorderLayout.CENTER);
         
         panel.add(headerPanel, BorderLayout.NORTH);
         panel.add(scrollPane, BorderLayout.CENTER);
@@ -387,20 +371,20 @@ public class turistaframe extends JFrame {
         return panel;
     }
     
-    // ============================================
-    // PANEL DE MIS ALQUILERES
+   // ============================================
+    // MIS ALQUILERES (TAMAÑO UNIFORME)
     // ============================================
     private JPanel createMyAlquileresPanel() {
-        JPanel panel = new JPanel(new BorderLayout(15, 15));
-        panel.setBackground(BG_DARK);
-        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        JPanel panel = new JPanel(new BorderLayout(12, 12));
+        panel.setBackground(BG_LIGHT);
+        panel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
         
         // Card contenedor
-        JPanel cardPanel = new JPanel(new BorderLayout(10, 10));
+        JPanel cardPanel = new JPanel(new BorderLayout(8, 8));
         cardPanel.setBackground(BG_CARD);
         cardPanel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(BORDER_COLOR, 1),
-            BorderFactory.createEmptyBorder(15, 15, 15, 15)
+            BorderFactory.createEmptyBorder(12, 12, 12, 12)
         ));
         
         // Header
@@ -408,17 +392,17 @@ public class turistaframe extends JFrame {
         headerPanel.setOpaque(false);
         
         JLabel titleLabel = new JLabel("📋 Historial de Alquileres");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        titleLabel.setFont(FONT_MAIN);
         titleLabel.setForeground(TEXT_PRIMARY);
         
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         btnPanel.setOpaque(false);
         
         JButton btnRefresh = createModernButton("Actualizar", INFO, "↻");
-        JButton btnDevolver = createModernButton("Devolver Recurso", PRIMARY, "↩");
+        JButton btnDevolver = createModernButton("Devolver", PRIMARY, "↩");
         
-        btnRefresh.setPreferredSize(new Dimension(130, 36));
-        btnDevolver.setPreferredSize(new Dimension(180, 36));
+        btnRefresh.setPreferredSize(new Dimension(110, 38)); // ✅ Uniforme
+        btnDevolver.setPreferredSize(new Dimension(110, 38));
         
         btnRefresh.addActionListener(e -> loadMyAlquileres());
         btnDevolver.addActionListener(e -> returnProduct());
@@ -431,12 +415,10 @@ public class turistaframe extends JFrame {
         
         // Tabla
         modelMyAlquileres = new DefaultTableModel(
-            new String[]{"ID Alquiler", "ID Recurso", "Fecha", "Hora", "Duración", "Recurso", "Tarifa"}, 0
+            new String[]{"ID", "Rec.", "Fecha", "Hora", "Hrs", "Recurso", "Tarifa"}, 0
         ) {
             @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+            public boolean isCellEditable(int row, int column) { return false; }
         };
         
         tableMyAlquileres = createModernTable(modelMyAlquileres);
@@ -446,70 +428,65 @@ public class turistaframe extends JFrame {
         cardPanel.add(scrollPane, BorderLayout.CENTER);
         
         panel.add(cardPanel, BorderLayout.CENTER);
-        
         return panel;
     }
-    // ============================================
-// PANEL DE PROMOCIONES (SOLO VISUAL)
-// ============================================
-private JPanel createPromocionesPanel() {
-
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-    panel.setBackground(BG_CARD);
-    panel.setBorder(BorderFactory.createCompoundBorder(
-        BorderFactory.createLineBorder(INFO, 2),
-        BorderFactory.createEmptyBorder(15, 15, 15, 15)
-    ));
-
-    JLabel title = new JLabel("🎁 Promociones");
-    title.setFont(new Font("Segoe UI", Font.BOLD, 18));
-    title.setForeground(TEXT_PRIMARY);
-    title.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-    panel.add(title);
-    panel.add(Box.createVerticalStrut(15));
-
-    panel.add(crearPromoLabel("⏱️ Por horas"));
-    panel.add(crearPromoLabel("• 3 horas o más → 10% OFF"));
-    panel.add(crearPromoLabel("• 5 horas o más → 15% OFF"));
-    panel.add(crearPromoLabel("• 8 horas o más → 20% OFF"));
-
-    panel.add(Box.createVerticalStrut(15));
-
-    panel.add(crearPromoLabel("🚜 Por cantidad"));
-    panel.add(crearPromoLabel("• 4 recursos o más → 15% OFF"));
-    panel.add(crearPromoLabel("• 6 recursos o más → 25% OFF"));
-
-    return panel;
-}
-
-
-
-private JLabel crearPromoLabel(String texto) {
-    JLabel lbl = new JLabel(texto);
-    lbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-    lbl.setForeground(TEXT_SECONDARY);
-    lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
-    return lbl;
-}
-
-    
     
     // ============================================
-    // COMPONENTES REUTILIZABLES
+    // PROMOCIONES COMPACTAS
+    // ============================================
+    private JPanel createPromocionesPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(BG_CARD);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(INFO, 2),
+            BorderFactory.createEmptyBorder(12, 12, 12, 12)
+        ));
+        panel.setPreferredSize(new Dimension(280, 200)); // ✅ Tamaño fijo compacto
+
+        JLabel title = new JLabel("🎁 Promociones");
+        title.setFont(FONT_MAIN);
+        title.setForeground(TEXT_PRIMARY);
+        title.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        panel.add(title);
+        panel.add(Box.createVerticalStrut(10));
+
+        panel.add(crearPromoLabel("⏱️ Por horas"));
+        panel.add(crearPromoLabel("• 3+ hrs → 10% OFF"));
+        panel.add(crearPromoLabel("• 5+ hrs → 15% OFF"));
+        panel.add(crearPromoLabel("• 8+ hrs → 20% OFF"));
+
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(crearPromoLabel("🚜 Por cantidad"));
+        panel.add(crearPromoLabel("• 4+ rec. → 15% OFF"));
+        panel.add(crearPromoLabel("• 6+ rec. → 25% OFF"));
+
+        return panel;
+    }
+
+    private JLabel crearPromoLabel(String texto) {
+        JLabel lbl = new JLabel(texto);
+        lbl.setFont(FONT_SMALL);
+        lbl.setForeground(TEXT_SECONDARY);
+        lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return lbl;
+    }
+    
+    // ============================================
+    // BOTONES UNIFORMES
     // ============================================
     private JButton createModernButton(String text, Color bgColor, String icon) {
-        JButton btn = new JButton(icon.isEmpty() ? text : icon + "  " + text);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        JButton btn = new JButton(icon.isEmpty() ? text : icon + " " + text);
+        btn.setFont(FONT_REGULAR);
         btn.setBackground(bgColor);
         btn.setForeground(Color.WHITE);
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+        btn.setBorder(BorderFactory.createEmptyBorder(6, 14, 6, 14)); // ✅ Padding uniforme
         
-        // Efecto hover
+        // Efecto hover claro
         btn.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 btn.setBackground(bgColor.brighter());
@@ -522,10 +499,13 @@ private JLabel crearPromoLabel(String texto) {
         return btn;
     }
     
+    // ============================================
+    // TABLAS UNIFORMES (RowHeight 38px)
+    // ============================================
     private JTable createModernTable(DefaultTableModel model) {
         JTable table = new JTable(model);
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        table.setRowHeight(40);
+        table.setFont(FONT_REGULAR);
+        table.setRowHeight(38); // ✅ Altura uniforme
         table.setShowGrid(false);
         table.setIntercellSpacing(new Dimension(0, 0));
         table.setSelectionBackground(PRIMARY_DARK);
@@ -533,15 +513,15 @@ private JLabel crearPromoLabel(String texto) {
         table.setBackground(BG_CARD);
         table.setForeground(TEXT_PRIMARY);
         
-        // Header
+        // Header uniforme
         JTableHeader header = table.getTableHeader();
-        header.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        header.setBackground(BG_DARK);
-        header.setForeground(TEXT_SECONDARY);
+        header.setFont(FONT_MAIN);
+        header.setBackground(BG_LIGHT);
+        header.setForeground(TEXT_PRIMARY);
         header.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, PRIMARY));
-        header.setPreferredSize(new Dimension(header.getWidth(), 40));
+        header.setPreferredSize(new Dimension(header.getWidth(), 42));
         
-        // Renderer personalizado
+        // Renderer uniforme
         DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, 
@@ -555,7 +535,7 @@ private JLabel crearPromoLabel(String texto) {
                 
                 setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER_COLOR),
-                    BorderFactory.createEmptyBorder(8, 12, 8, 12)
+                    BorderFactory.createEmptyBorder(6, 10, 6, 10) // ✅ Padding uniforme
                 ));
                 
                 return c;
@@ -564,6 +544,7 @@ private JLabel crearPromoLabel(String texto) {
         
         for (int i = 0; i < table.getColumnCount(); i++) {
             table.getColumnModel().getColumn(i).setCellRenderer(cellRenderer);
+            table.getColumnModel().getColumn(i).setPreferredWidth(120); // ✅ Anchos uniformes
         }
         
         return table;
@@ -581,9 +562,6 @@ private JLabel crearPromoLabel(String texto) {
         return scrollPane;
     }
     
-    // ============================================
-    // LÓGICA DE NEGOCIO
-    // ============================================
     private void loadRecursos() {
         modelRecursos.setRowCount(0);
         try (Connection conn = conexion.getConnection()) {
@@ -593,13 +571,7 @@ private JLabel crearPromoLabel(String texto) {
             
             while (rs.next()) {
                 String estadoBD = rs.getString("Estado");
-    String estadoMostrar;
-    
-    if (estadoBD.equalsIgnoreCase("disponible")) {
-        estadoMostrar = "Disponible";
-    } else {
-        estadoMostrar = "No Disponible";
-    }
+                String estadoMostrar = estadoBD.equalsIgnoreCase("disponible") ? "Disponible" : "No Disponible";
 
                 modelRecursos.addRow(new Object[]{
                     rs.getString("IDRecurso"),
@@ -653,49 +625,40 @@ private JLabel crearPromoLabel(String texto) {
                 JOptionPane.ERROR_MESSAGE);
         }
     }
-    private void initTableClick() {
-
-    tablaRecursos.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseClicked(MouseEvent e) {
-
-            if (e.getClickCount() == 2) {
-
-                int row = tablaRecursos.getSelectedRow();
-
-                String idRecurso = tablaRecursos.getValueAt(row, 0).toString();
-                String nombre = tablaRecursos.getValueAt(row, 1).toString();
-                double tarifa = Double.parseDouble(
-                        tablaRecursos.getValueAt(row, 2).toString()
-                );
-
-                String rutaImagen = "/imagenes/" +
-                        nombre.toLowerCase().replace(" ", "_") + ".jpg";
-
-                mostrarImagenRecurso(nombre, tarifa, rutaImagen);
-            }
-        }
-    });
-}
-private void mostrarImagenRecurso(String nombre, double tarifa, String rutaImagen) {
-
-    ImageIcon icon = new ImageIcon(
-            getClass().getResource(rutaImagen)
-    );
-
-    JLabel lblImagen = new JLabel(icon);
-    lblImagen.setHorizontalAlignment(JLabel.CENTER);
-
-    JOptionPane.showMessageDialog(
-            this,
-            lblImagen,
-            nombre + " - S/ " + tarifa + " por hora",
-            JOptionPane.PLAIN_MESSAGE
-    );
-}
-
-
     
+    private void initTableClick() {
+        tablaRecursos.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int row = tablaRecursos.getSelectedRow();
+                    String idRecurso = tablaRecursos.getValueAt(row, 0).toString();
+                    String nombre = tablaRecursos.getValueAt(row, 1).toString();
+                    String tarifaStr = tablaRecursos.getValueAt(row, 3).toString();
+                    double tarifa = Double.parseDouble(tarifaStr.replace("S/ ", ""));
+
+                    String rutaImagen = "/imagenes/" +
+                            nombre.toLowerCase().replace(" ", "_") + ".jpg";
+
+                    mostrarImagenRecurso(nombre, tarifa, rutaImagen);
+                }
+            }
+        });
+    }
+
+    private void mostrarImagenRecurso(String nombre, double tarifa, String rutaImagen) {
+        ImageIcon icon = new ImageIcon(getClass().getResource(rutaImagen));
+        JLabel lblImagen = new JLabel(icon);
+        lblImagen.setHorizontalAlignment(JLabel.CENTER);
+
+        JOptionPane.showMessageDialog(
+                this,
+                lblImagen,
+                nombre + " - S/ " + tarifa + " por hora",
+                JOptionPane.PLAIN_MESSAGE
+        );
+    }
+
     private void addToCart() {
         int selectedRow = tablaRecursos.getSelectedRow();
         if (selectedRow == -1) {
@@ -709,7 +672,7 @@ private void mostrarImagenRecurso(String nombre, double tarifa, String rutaImage
         String id = modelRecursos.getValueAt(selectedRow, 0).toString();
         String nombre = (String) modelRecursos.getValueAt(selectedRow, 1);
         String tarifaStr = (String) modelRecursos.getValueAt(selectedRow, 3);
-        double tarifa = Double.parseDouble(tarifaStr.replace("S/ ", ""));
+        double tarifa = Double.parseDouble(tablaRecursos.getValueAt(selectedRow, 3).toString().replace("S/ ", ""));
         
         String horasStr = JOptionPane.showInputDialog(this,
             "¿Cuántas horas desea alquilar?",
@@ -767,7 +730,7 @@ private void mostrarImagenRecurso(String nombre, double tarifa, String rutaImage
         }
     }
     
-    private void updateCartTable() {
+     private void updateCartTable() {
         modelCart.setRowCount(0);
         double total = 0;
         
