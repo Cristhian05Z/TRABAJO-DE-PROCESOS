@@ -131,6 +131,34 @@ public class DetalleAlquilerDAO {
         detalle.setFormatodePago(rs.getString("FormatodePago"));
         return detalle;
     }
+    public boolean devolverRecurso(String idAlquiler, String idRecurso) {
+
+    String sqlDetalle =
+        "DELETE FROM DETALLEALQUILER WHERE IDAlquiler = ? AND IDRecurso = ?";
+
+    String sqlRecurso =
+        "UPDATE RECURSOS SET Estado = 'disponible' WHERE IDRecurso = ?";
+
+    try (Connection conn = conexion.getConnection()) {
+        conn.setAutoCommit(false);
+
+        PreparedStatement pst1 = conn.prepareStatement(sqlDetalle);
+        pst1.setString(1, idAlquiler);
+        pst1.setString(2, idRecurso);
+        pst1.executeUpdate();
+
+        PreparedStatement pst2 = conn.prepareStatement(sqlRecurso);
+        pst2.setString(1, idRecurso);
+        pst2.executeUpdate();
+
+        conn.commit();
+        return true;
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
+    }
+}
 
     
 }

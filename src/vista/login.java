@@ -182,7 +182,7 @@ public class login extends JFrame {
             "Ingreso correcto",
             JOptionPane.INFORMATION_MESSAGE);
 
-        dispose(); // Cierra login
+        dispose(); 
 
         // Redirección según el tipo de usuario
         switch (tipoBD.toLowerCase()) {
