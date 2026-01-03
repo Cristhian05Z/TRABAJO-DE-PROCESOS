@@ -56,12 +56,12 @@ public class adminframe extends JFrame {
     // HEADER MODERNO
     // ============================================
     private JPanel createModernHeader() {
-    JPanel header = new JPanel(new BorderLayout(20, 0));
-    header.setBackground(BG_CARD);
-    header.setBorder(BorderFactory.createCompoundBorder(
+        JPanel header = new JPanel(new BorderLayout(20, 0));
+        header.setBackground(BG_CARD);
+        header.setBorder(BorderFactory.createCompoundBorder(
         BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER_COLOR),
         BorderFactory.createEmptyBorder(20, 30, 20, 30)
-    ));
+        ));
 
     // =========================
     // LADO IZQUIERDO (TÍTULO)
@@ -113,7 +113,7 @@ public class adminframe extends JFrame {
     header.add(rightPanel, BorderLayout.EAST);
 
     return header;
-}
+    }
     
     // ============================================
     // TABS MODERNOS
@@ -272,7 +272,25 @@ public class adminframe extends JFrame {
         
         btnAdd.addActionListener(e -> addTurista());
         btnEdit.addActionListener(e -> editTurista());
-        btnDelete.addActionListener(e -> deleteTurista());
+        btnDelete.addActionListener(e -> {
+
+            int fila = tablaTuristas.getSelectedRow();
+
+            if (fila == -1) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Seleccione un turista",
+                    "Aviso",
+                    JOptionPane.WARNING_MESSAGE
+                );
+                return;
+            }
+
+            String idTurista =
+            tablaTuristas.getValueAt(fila, 0).toString();
+
+            deleteTurista(idTurista);
+        });
         btnRefresh.addActionListener(e -> loadTuristas());
         
         btnPanel.add(btnAdd);
@@ -357,7 +375,7 @@ public class adminframe extends JFrame {
     panel.add(scrollPane, BorderLayout.CENTER);
 
     return panel;
-}
+    }
 
     
     // ============================================
@@ -897,33 +915,38 @@ public class adminframe extends JFrame {
         }
     }
     
-    private void deleteTurista() {
-        int selectedRow = tablaTuristas.getSelectedRow();
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Selecciona un turista");
-            return;
-        }
-        
-        String id = modelTuristas.getValueAt(selectedRow, 0).toString();
-        int confirm = JOptionPane.showConfirmDialog(this, 
-            "¿Eliminar este turista?", 
-            "Confirmar", 
-            JOptionPane.YES_NO_OPTION);
-            
-        if (confirm == JOptionPane.YES_OPTION) {
-            try (Connection conn = conexion.getConnection()) {
-                String sql = "DELETE FROM TURISTAA WHERE IDTurista=?";
-                PreparedStatement pst = conn.prepareStatement(sql);
-                pst.setString(1, id);
-                pst.executeUpdate();
-                
-                JOptionPane.showMessageDialog(this, "Turista eliminado");
-                loadTuristas();
-            } catch (SQLException e) {
-                JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+    private void deleteTurista(String idTurista) {
+
+    String sqlCheck = "SELECT COUNT(*) FROM DETALLEALQUILER WHERE IDTurista = ?";
+    String sqlDelete = "DELETE FROM TURISTAA WHERE IDTurista = ?";
+
+    try (Connection con = conexion.getConnection()) {
+
+        // 1️⃣ Verificar si el turista tiene alquileres
+        try (PreparedStatement psCheck = con.prepareStatement(sqlCheck)) {
+            psCheck.setString(1, idTurista);
+            ResultSet rs = psCheck.executeQuery();
+
+            if (rs.next() && rs.getInt(1) > 0) {
+                JOptionPane.showMessageDialog(this,
+                    "No se puede eliminar a un turista que ya haya hecho un alquiler");
+                return;
             }
         }
+
+        // 2️⃣ Eliminar turista
+        try (PreparedStatement psDelete = con.prepareStatement(sqlDelete)) {
+            psDelete.setString(1, idTurista);
+            psDelete.executeUpdate();
+        }
+
+        JOptionPane.showMessageDialog(this, "Turista eliminado correctamente");
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this, "Error al eliminar turista");
     }
+}
     
     private void loadAlquileres() {
         modelAlquileres.setRowCount(0);
@@ -1330,8 +1353,8 @@ public class adminframe extends JFrame {
     } catch (SQLException e) {
         JOptionPane.showMessageDialog(this, "Error en reporte de ingresos");
     }
-}
-private void loadControlAlquileres() {
+    }
+    private void loadControlAlquileres() {
 
     modelControlAlquileres.setRowCount(0);
 
@@ -1368,8 +1391,8 @@ private void loadControlAlquileres() {
     } catch (SQLException e) {
         JOptionPane.showMessageDialog(this, "Error al cargar control de alquileres");
     }
-}
-private void editarAlquilerReporte() {
+    }
+    private void editarAlquilerReporte() {
 
     int row = tablaControlAlquileres.getSelectedRow();
 
@@ -1444,8 +1467,8 @@ private void editarAlquilerReporte() {
     } catch (SQLException e) {
         JOptionPane.showMessageDialog(this, "Error al actualizar alquiler");
     }
-}
-private void eliminarAlquilerReporte() {
+    }
+    private void eliminarAlquilerReporte() {
 
     int row = tablaControlAlquileres.getSelectedRow();
     if (row == -1) {
@@ -1481,8 +1504,8 @@ private void eliminarAlquilerReporte() {
             JOptionPane.showMessageDialog(this, "Error al eliminar");
         }
     }
-}
-class GraficaIngresosPanel extends JPanel {
+    }
+    class GraficaIngresosPanel extends JPanel {
 
     public GraficaIngresosPanel() {
         setBackground(Color.WHITE);
@@ -1537,7 +1560,7 @@ class GraficaIngresosPanel extends JPanel {
             g2.drawString(fecha, x + 10, height - 15);
         }
     }
-}
+    }
     private void cargarTotalIngresos() {
 
     try (Connection conn = conexion.getConnection()) {
@@ -1569,7 +1592,7 @@ class GraficaIngresosPanel extends JPanel {
             "Error",
             JOptionPane.ERROR_MESSAGE);
     }
-} 
+    } 
 
 
 

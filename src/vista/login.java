@@ -85,6 +85,37 @@ public class login extends JFrame {
         btnLogin.setFocusPainted(false);
         btnLogin.setPreferredSize(new Dimension(120, 40));
         btnLogin.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        // BOTÓN REGISTRARSE (SOLO TURISTA)
+JButton btnRegistrar = new JButton("Registrarse como Turista");
+btnRegistrar.setFont(new Font("Arial", Font.PLAIN, 14));
+btnRegistrar.setForeground(new Color(52, 152, 219));
+btnRegistrar.setBackground(Color.WHITE);
+btnRegistrar.setBorderPainted(false);
+btnRegistrar.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+// Hover efecto
+btnRegistrar.addMouseListener(new MouseAdapter() {
+    @Override
+    public void mouseEntered(MouseEvent e) {
+        btnRegistrar.setForeground(new Color(41, 128, 185));
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+        btnRegistrar.setForeground(new Color(52, 152, 219));
+    }
+});
+
+// Acción: abrir registro
+btnRegistrar.addActionListener(e -> {
+    new RegistroTuristaFrame().setVisible(true);
+});
+
+// Posición en el layout
+gbc.gridy = 6;
+rightPanel.add(btnRegistrar, gbc);
+
+
 
         // Hover
         btnLogin.addMouseListener(new MouseAdapter() {
