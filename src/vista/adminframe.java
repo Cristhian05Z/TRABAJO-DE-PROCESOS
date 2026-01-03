@@ -272,7 +272,26 @@ public class adminframe extends JFrame {
         
         btnAdd.addActionListener(e -> addTurista());
         btnEdit.addActionListener(e -> editTurista());
-        btnDelete.addActionListener(e -> deleteTurista());
+        btnDelete.addActionListener(e -> {
+
+        int fila = tablaTuristas.getSelectedRow();
+
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(
+                this,
+                "Seleccione un turista",
+                "Aviso",
+                JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+
+        int idTurista = Integer.parseInt(
+            tablaTuristas.getValueAt(fila, 0).toString()
+        );
+
+        deleteTurista(idTurista);
+    });
         btnRefresh.addActionListener(e -> loadTuristas());
         
         btnPanel.add(btnAdd);
