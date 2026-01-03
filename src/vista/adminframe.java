@@ -56,12 +56,12 @@ public class adminframe extends JFrame {
     // HEADER MODERNO
     // ============================================
     private JPanel createModernHeader() {
-    JPanel header = new JPanel(new BorderLayout(20, 0));
-    header.setBackground(BG_CARD);
-    header.setBorder(BorderFactory.createCompoundBorder(
+        JPanel header = new JPanel(new BorderLayout(20, 0));
+        header.setBackground(BG_CARD);
+        header.setBorder(BorderFactory.createCompoundBorder(
         BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER_COLOR),
         BorderFactory.createEmptyBorder(20, 30, 20, 30)
-    ));
+        ));
 
     // =========================
     // LADO IZQUIERDO (TÍTULO)
@@ -113,7 +113,7 @@ public class adminframe extends JFrame {
     header.add(rightPanel, BorderLayout.EAST);
 
     return header;
-}
+    }
     
     // ============================================
     // TABS MODERNOS
@@ -272,8 +272,26 @@ public class adminframe extends JFrame {
         
         btnAdd.addActionListener(e -> addTurista());
         btnEdit.addActionListener(e -> editTurista());
-        btnDelete.addActionListener(e -> deleteTurista());
-    ; // refresca la tabla
+        btnDelete.addActionListener(e -> {
+
+        int fila = tablaTuristas.getSelectedRow();
+
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(
+                this,
+                "Seleccione un turista",
+                "Aviso",
+                JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+
+        int idTurista = Integer.parseInt(
+            tablaTuristas.getValueAt(fila, 0).toString()
+        );
+
+        deleteTurista(idTurista);
+    });
         btnRefresh.addActionListener(e -> loadTuristas());
         
         btnPanel.add(btnAdd);
@@ -358,7 +376,7 @@ public class adminframe extends JFrame {
     panel.add(scrollPane, BorderLayout.CENTER);
 
     return panel;
-}
+    }
 
     
     // ============================================
@@ -900,56 +918,55 @@ public class adminframe extends JFrame {
     
     private void deleteTurista(int idTurista) {
 
-    String sqlCheck =
-        "SELECT COUNT(IDAlquiler) FROM ALQUILER WHERE IDTurista = ?";
-    String sqlDelete =
-        "DELETE FROM TURISTAA WHERE IDTurista = ?";
+        String sqlCheck =
+            "SELECT COUNT(IDAlquiler) FROM ALQUILER WHERE IDTurista = ?";
+        String sqlDelete =
+            "DELETE FROM TURISTAA WHERE IDTurista = ?";
 
-    try (Connection con = conexion.getConnection()) {
+        try (Connection con = conexion.getConnection()) {
 
-        // Verificar si el turista tiene alquiler(es)
-        PreparedStatement psCheck = con.prepareStatement(sqlCheck);
-        psCheck.setInt(1, idTurista);
+            // 1️⃣ Verificar si tiene alquiler(es)
+            PreparedStatement psCheck = con.prepareStatement(sqlCheck);
+            psCheck.setInt(1, idTurista);
 
-        ResultSet rs = psCheck.executeQuery();
-        rs.next();
+            ResultSet rs = psCheck.executeQuery();
+            rs.next();
 
-        int totalAlquileres = rs.getInt(1);
+            int totalAlquileres = rs.getInt(1);
 
-        // ❌ Si tiene alquileres, NO eliminar
-        if (totalAlquileres > 0) {
+            // 2️⃣ Si ya alquiló → NO eliminar
+            if (totalAlquileres > 0) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "No se puede eliminar a un turista que ya haya hecho un alquiler",
+                    "Operación no permitida",
+                    JOptionPane.WARNING_MESSAGE
+                );
+                return;
+            }
+
+            // 3️⃣ Si no alquiló → eliminar
+            PreparedStatement psDelete = con.prepareStatement(sqlDelete);
+            psDelete.setInt(1, idTurista);
+            psDelete.executeUpdate();
+
             JOptionPane.showMessageDialog(
                 this,
-                "No se puede eliminar a un turista que ya haya hecho un alquiler",
-                "Operación no permitida",
-                JOptionPane.WARNING_MESSAGE
+                "Turista eliminado correctamente",
+                "Éxito",
+                JOptionPane.INFORMATION_MESSAGE
             );
-            return;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(
+                this,
+                "Error al eliminar el turista",
+                "Error",
+                JOptionPane.ERROR_MESSAGE
+            );
         }
-
-        // ✅ Si no tiene alquileres, eliminar
-        PreparedStatement psDelete = con.prepareStatement(sqlDelete);
-        psDelete.setInt(1, idTurista);
-        psDelete.executeUpdate();
-
-        JOptionPane.showMessageDialog(
-            this,
-            "Turista eliminado correctamente",
-            "Éxito",
-            JOptionPane.INFORMATION_MESSAGE
-        );
-
-    } catch (SQLException e) {
-        e.printStackTrace();
-        JOptionPane.showMessageDialog(
-            this,
-            "Error al eliminar el turista",
-            "Error",
-            JOptionPane.ERROR_MESSAGE
-        );
     }
-}
-
     
     private void loadAlquileres() {
         modelAlquileres.setRowCount(0);
@@ -1356,8 +1373,8 @@ public class adminframe extends JFrame {
     } catch (SQLException e) {
         JOptionPane.showMessageDialog(this, "Error en reporte de ingresos");
     }
-}
-private void loadControlAlquileres() {
+    }
+    private void loadControlAlquileres() {
 
     modelControlAlquileres.setRowCount(0);
 
@@ -1394,8 +1411,8 @@ private void loadControlAlquileres() {
     } catch (SQLException e) {
         JOptionPane.showMessageDialog(this, "Error al cargar control de alquileres");
     }
-}
-private void editarAlquilerReporte() {
+    }
+    private void editarAlquilerReporte() {
 
     int row = tablaControlAlquileres.getSelectedRow();
 
@@ -1470,8 +1487,8 @@ private void editarAlquilerReporte() {
     } catch (SQLException e) {
         JOptionPane.showMessageDialog(this, "Error al actualizar alquiler");
     }
-}
-private void eliminarAlquilerReporte() {
+    }
+    private void eliminarAlquilerReporte() {
 
     int row = tablaControlAlquileres.getSelectedRow();
     if (row == -1) {
@@ -1507,8 +1524,8 @@ private void eliminarAlquilerReporte() {
             JOptionPane.showMessageDialog(this, "Error al eliminar");
         }
     }
-}
-class GraficaIngresosPanel extends JPanel {
+    }
+    class GraficaIngresosPanel extends JPanel {
 
     public GraficaIngresosPanel() {
         setBackground(Color.WHITE);
@@ -1563,7 +1580,7 @@ class GraficaIngresosPanel extends JPanel {
             g2.drawString(fecha, x + 10, height - 15);
         }
     }
-}
+    }
     private void cargarTotalIngresos() {
 
     try (Connection conn = conexion.getConnection()) {
@@ -1595,7 +1612,7 @@ class GraficaIngresosPanel extends JPanel {
             "Error",
             JOptionPane.ERROR_MESSAGE);
     }
-} 
+    } 
 
 
 
