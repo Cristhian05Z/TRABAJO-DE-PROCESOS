@@ -272,26 +272,8 @@ public class adminframe extends JFrame {
         
         btnAdd.addActionListener(e -> addTurista());
         btnEdit.addActionListener(e -> editTurista());
-        btnDelete.addActionListener(e -> {
-
-        int fila = tablaTuristas.getSelectedRow();
-
-        if (fila == -1) {
-            JOptionPane.showMessageDialog(
-                this,
-                "Seleccione un turista",
-                "Aviso",
-                JOptionPane.WARNING_MESSAGE
-            );
-            return;
-        }
-
-        int idTurista = Integer.parseInt(
-            tablaTuristas.getValueAt(fila, 0).toString()
-        );
-
-        deleteTurista(idTurista);
-    });
+        btnDelete.addActionListener(e -> deleteTurista());
+    ; // refresca la tabla
         btnRefresh.addActionListener(e -> loadTuristas());
         
         btnPanel.add(btnAdd);
@@ -925,7 +907,7 @@ public class adminframe extends JFrame {
 
     try (Connection con = conexion.getConnection()) {
 
-        // 1️⃣ Verificar si tiene alquiler(es)
+        // Verificar si el turista tiene alquiler(es)
         PreparedStatement psCheck = con.prepareStatement(sqlCheck);
         psCheck.setInt(1, idTurista);
 
@@ -934,7 +916,7 @@ public class adminframe extends JFrame {
 
         int totalAlquileres = rs.getInt(1);
 
-        // 2️⃣ Si ya alquiló → NO eliminar
+        // ❌ Si tiene alquileres, NO eliminar
         if (totalAlquileres > 0) {
             JOptionPane.showMessageDialog(
                 this,
@@ -945,7 +927,7 @@ public class adminframe extends JFrame {
             return;
         }
 
-        // 3️⃣ Si no alquiló → eliminar
+        // ✅ Si no tiene alquileres, eliminar
         PreparedStatement psDelete = con.prepareStatement(sqlDelete);
         psDelete.setInt(1, idTurista);
         psDelete.executeUpdate();
@@ -967,6 +949,7 @@ public class adminframe extends JFrame {
         );
     }
 }
+
     
     private void loadAlquileres() {
         modelAlquileres.setRowCount(0);
