@@ -6,7 +6,7 @@ public class Recurso {
     private String Recurso;
     private String Descripcion;
     private double TarifaPorHora;
-    private String Estado; // disponible, alquilado, mantenimiento
+    private String Estado; 
     
     @Override
     public String toString() {

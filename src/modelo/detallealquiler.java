@@ -5,9 +5,9 @@ public class DetalleAlquiler {
     private String IDRecurso;
     private String IDTurista;
     private String IDAlquiler;
-    private String IDPromocion; // Puede ser null
+    private String IDPromocion; 
     private String FormatodePago;
-    // Objetos relacionados (para facilitar el uso)
+    
     private Recurso recursoObj;
     private Turista turistaObj;
     private Promocion promocionObj;

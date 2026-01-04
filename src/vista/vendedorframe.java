@@ -317,7 +317,7 @@ public class vendedorframe extends JFrame {
         totalPanel.add(lblTotal, BorderLayout.EAST);
         
         // Botón procesar
-        JButton btnProcess = createModernButton("💳 Procesar Alquiler", SUCCESS, "");
+        JButton btnProcess = createModernButton("💳 Procesar Pago", SUCCESS, "");
         btnProcess.setPreferredSize(new Dimension(250, 50));
         btnProcess.setFont(new Font("Segoe UI", Font.BOLD, 16));
         btnProcess.addActionListener(e -> processRental());

@@ -9,7 +9,7 @@ import java.sql.*;
 public class adminframe extends JFrame {
     
     // Paleta de colores moderna
-    private static final Color PRIMARY = new Color(99, 102, 241); // Índigo
+    private static final Color PRIMARY = new Color(99, 102, 241); 
     private static final Color PRIMARY_DARK = new Color(79, 70, 229);
     private static final Color SECONDARY = new Color(236, 72, 153); // Rosa
     private static final Color SUCCESS = new Color(34, 197, 94); // Verde
@@ -87,7 +87,7 @@ public class adminframe extends JFrame {
 
     // Cargar imagen
     ImageIcon icon = new ImageIcon(
-        getClass().getResource("/Imagen/foto.jpg")
+        getClass().getResource("/Imagen/foto. ")
     );
     Image img = icon.getImage().getScaledInstance(45, 45, Image.SCALE_SMOOTH);
     JLabel lblFoto = new JLabel(new ImageIcon(img));
@@ -1274,16 +1274,6 @@ String estadoBD = rs.getString("Estado");
 
     tablaIngresosDia = createModernTable(modelIngresosDia);
 
-    ingresosPanel.add(lblIngresos, BorderLayout.NORTH);
-    graficaPanel = new GraficaIngresosPanel();
-    graficaPanel.setPreferredSize(new Dimension(600, 250));
-
-    JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
-    centerPanel.setOpaque(false);
-    centerPanel.add(createModernScrollPane(tablaIngresosDia), BorderLayout.CENTER);
-    centerPanel.add(graficaPanel, BorderLayout.SOUTH);
-
-    ingresosPanel.add(centerPanel, BorderLayout.CENTER);
 
     // =============================
     // PARTE INFERIOR: CONTROL DE ALQUILERES
