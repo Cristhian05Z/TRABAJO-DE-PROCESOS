@@ -1296,8 +1296,9 @@ String estadoBD = rs.getString("Estado");
     btnEliminar.addActionListener(e -> eliminarAlquilerReporte());
     btnActualizar.addActionListener(e -> {
         loadIngresosPorDia();
-        loadControlAlquileres();
-        graficaPanel.repaint();
+    loadControlAlquileres();
+    graficaPanel.revalidate();
+    graficaPanel.repaint();
     });
 
     btnPanel.add(btnEditar);
@@ -1319,8 +1320,17 @@ String estadoBD = rs.getString("Estado");
     // =============================
     // DISTRIBUCIÓN FINAL
     // =============================
-    panel.add(ingresosPanel, BorderLayout.NORTH);
-    panel.add(controlPanel, BorderLayout.CENTER);
+    JSplitPane splitPane = new JSplitPane(
+        JSplitPane.VERTICAL_SPLIT,
+        graficaPanel,
+        controlPanel
+        );
+
+        splitPane.setResizeWeight(0.4); // 40% gráfica, 60% tablas
+        splitPane.setDividerSize(8);
+        splitPane.setBorder(null);
+
+        panel.add(splitPane, BorderLayout.CENTER);
 
     loadIngresosPorDia();
     loadControlAlquileres();
@@ -1356,6 +1366,8 @@ String estadoBD = rs.getString("Estado");
     } catch (SQLException e) {
         JOptionPane.showMessageDialog(this, "Error en reporte de ingresos");
     }
+    graficaPanel.revalidate();
+    graficaPanel.repaint();
     }
     private void loadControlAlquileres() {
 
@@ -1511,8 +1523,16 @@ String estadoBD = rs.getString("Estado");
     class GraficaIngresosPanel extends JPanel {
 
     public GraficaIngresosPanel() {
+
         setBackground(Color.WHITE);
-        setBorder(BorderFactory.createTitledBorder("📊 Ingresos por Día"));
+
+        setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(Color.GRAY),
+            "📊 Ingresos por Día"
+        ));
+
+        setPreferredSize(new Dimension(800, 300));
+        setMinimumSize(new Dimension(400, 250));
     }
 
     @Override
@@ -1520,50 +1540,78 @@ String estadoBD = rs.getString("Estado");
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
 
+        g2.setRenderingHint(
+            RenderingHints.KEY_ANTIALIASING,
+            RenderingHints.VALUE_ANTIALIAS_ON
+        );
+
         int width = getWidth();
         int height = getHeight();
-        int padding = 40;
+
+        // Padding controlado (no usamos insets)
+        int paddingTop = 55;      // espacio para título
+        int paddingBottom = 40;   // espacio etiquetas X
+        int paddingSides = 40;
+
+        int drawWidth = width - 2 * paddingSides;
+        int drawHeight = height - paddingTop - paddingBottom;
 
         int rowCount = modelIngresosDia.getRowCount();
         if (rowCount == 0) return;
 
-        // Obtener el máximo
+        // Obtener valor máximo
         double max = 0;
         for (int i = 0; i < rowCount; i++) {
-            String val = modelIngresosDia.getValueAt(i, 1).toString()
-                    .replace("S/", "").trim();
-            double value = Double.parseDouble(val);
-            max = Math.max(max, value);
+            String val = modelIngresosDia.getValueAt(i, 1)
+                    .toString().replace("S/", "").trim();
+            max = Math.max(max, Double.parseDouble(val));
         }
 
-        int barWidth = (width - 2 * padding) / rowCount;
+        int barWidth = drawWidth / rowCount;
 
         for (int i = 0; i < rowCount; i++) {
 
             String fecha = modelIngresosDia.getValueAt(i, 0).toString();
-            String val = modelIngresosDia.getValueAt(i, 1).toString()
-                    .replace("S/", "").trim();
+            double ingreso = Double.parseDouble(
+                modelIngresosDia.getValueAt(i, 1)
+                        .toString().replace("S/", "").trim()
+            );
 
-            double ingreso = Double.parseDouble(val);
-            int barHeight = (int) ((ingreso / max) * (height - 2 * padding));
+            int barHeight = (int) ((ingreso / max) * drawHeight);
 
-            int x = padding + i * barWidth;
-            int y = height - padding - barHeight;
+            int x = paddingSides + i * barWidth;
+            int y = paddingTop + drawHeight - barHeight;
 
             // Barra
             g2.setColor(PRIMARY);
-            g2.fillRect(x + 5, y, barWidth - 10, barHeight);
+            g2.fillRoundRect(
+                x + 6,
+                y,
+                barWidth - 12,
+                barHeight,
+                10,
+                10
+            );
 
-            // Valor
+            // Valor encima de la barra
             g2.setColor(Color.BLACK);
-            g2.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-            g2.drawString("S/ " + String.format("%.0f", ingreso), x + 10, y - 5);
+            g2.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+            g2.drawString(
+                "S/ " + (int) ingreso,
+                x + 10,
+                y - 6
+            );
 
-            // Fecha
-            g2.drawString(fecha, x + 10, height - 15);
+            // Fecha abajo
+            g2.setFont(new Font("Segoe UI", Font.PLAIN, 10));
+            g2.drawString(
+                fecha,
+                x + 10,
+                height - 15
+            );
         }
     }
-    }
+}
     private void cargarTotalIngresos() {
 
     try (Connection conn = conexion.getConnection()) {
