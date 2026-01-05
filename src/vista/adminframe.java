@@ -87,7 +87,7 @@ public class adminframe extends JFrame {
 
     // Cargar imagen
     ImageIcon icon = new ImageIcon(
-        getClass().getResource("/Imagen/foto. ")
+        getClass().getResource("/Imagen/foto.jpg")
     );
     Image img = icon.getImage().getScaledInstance(45, 45, Image.SCALE_SMOOTH);
     JLabel lblFoto = new JLabel(new ImageIcon(img));
@@ -1274,6 +1274,16 @@ String estadoBD = rs.getString("Estado");
 
     tablaIngresosDia = createModernTable(modelIngresosDia);
 
+    ingresosPanel.add(lblIngresos, BorderLayout.NORTH);
+    graficaPanel = new GraficaIngresosPanel();
+    graficaPanel.setPreferredSize(new Dimension(600, 250));
+
+    JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
+    centerPanel.setOpaque(false);
+    centerPanel.add(createModernScrollPane(tablaIngresosDia), BorderLayout.CENTER);
+    centerPanel.add(graficaPanel, BorderLayout.SOUTH);
+
+    ingresosPanel.add(centerPanel, BorderLayout.CENTER);
 
     // =============================
     // PARTE INFERIOR: CONTROL DE ALQUILERES
